@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ClayxelClayShaderMatURP
+  m_Shader: {fileID: 4800000, guid: bfc171d39b6608a4fa561d648f058738, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 0
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BotTexture0:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex1:
+        m_Texture: {fileID: 2800000, guid: 1aa3096b1b9d9204eaa6c75a4275adb1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MidTexture0:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture0:
+        m_Texture: {fileID: 2800000, guid: 1aa3096b1b9d9204eaa6c75a4275adb1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _normal:
+        m_Texture: {fileID: 2800000, guid: 07944ba93895c3d43869c3b14beb60b4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _normal1:
+        m_Texture: {fileID: 2800000, guid: 07944ba93895c3d43869c3b14beb60b4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _texcoord:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _AlphaCutoff: 0.5
+    - _ClayxelSize: 11.9
+    - _Cutoff: 1
+    - _Metallic: 0
+    - _NormalOrient: 1
+    - _Smoothness1: 0.44
+    - __dirty: 0
+    - _animate: 98.458145
+    - _normalFalloff: 1
+    - _normalFalloff1: 0
+    - _normalStrength: 0.8
+    - _normalStrength1: 0
+    - _normalTileX: 1
+    - _normalTileY: 1
+    - _test: 1
+    - _test2: 0.37
+    - _tilingX: 2.2
+    - _tilingX1: 1
+    - _tilingY: 0.4
+    - _tilingY1: 1
+    m_Colors:
+    - _Emission: {r: 0, g: 0, b: 0, a: 0}
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Vector0: {r: 0, g: 0, b: 0, a: 0}
+    - _normalMapOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _normalOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _normalOffset1: {r: 0, g: 0, b: 0, a: 0}
+    - _normalTiling: {r: 1, g: 1, b: 0, a: 0}
