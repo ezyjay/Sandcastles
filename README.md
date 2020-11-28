@@ -1,14 +1,15 @@
 # Sandcastles
 
-##Idea
+## Idea
 - A game where the main story is about how there's a sand castle/ sand sculpture competition coming up like the one in primel and you have to get ready to participate
 - You play as a little girl who hears about the sandcastle competition and wants to join. The game is about practicing, finding the tools, creating a team to join the competition
-##Inspirations
+
+## Inspirations
 - Carto
 - A short hike
 - Oxenfree
 
-##Mechanics
+# #Mechanics
 - Small dialogue system
 - Running around
 - Pick things up
