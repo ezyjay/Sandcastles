@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
-#endif
 
 [@CustomEditor(typeof(Transform))]
 class TransformEditor : Editor {
@@ -62,4 +61,5 @@ class TransformEditor : Editor {
         return v;
     }
 }
-//}
+
+#endif
