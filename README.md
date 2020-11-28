@@ -9,7 +9,7 @@
 - A short hike
 - Oxenfree
 
-# #Mechanics
+## Mechanics
 - Small dialogue system
 - Running around
 - Pick things up
