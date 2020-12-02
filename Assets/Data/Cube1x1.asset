@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15a96a37cb6bcd344bd7635e75e3d66e, type: 3}
+  m_Name: Cube1x1
+  m_EditorClassIdentifier: 
+  type: 0
+  size: {x: 1, y: 1, z: 1}
+  color: {r: 0.8396226, g: 0.67109185, b: 0.24951048, a: 1}
+  blend: 55
+  round: 20
+  primitiveShape: 0
