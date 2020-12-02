@@ -29,7 +29,7 @@ public class GridDrawer : MonoBehaviour
 
         float xOffset = transform.position.x % 1;
 
-        if (xOffset > 0.5f)
+        if (xOffset > tilesize/2)
             xOffset -= tilesize;
 
         float zOffset = transform.position.z % 1;
@@ -88,8 +88,8 @@ public class GridDrawer : MonoBehaviour
     /// <param name="objectTransform"> The object to move</param>
     /// <param name="newPosition"> The new position of the object </param>
     public void MoveObjectOnGrid(Transform objectTransform, Vector3 newPosition) {
-        float newXPos = tilesize * Mathf.Round(newPosition.x / tilesize);
-        float newZPos = tilesize * Mathf.Round(newPosition.z / tilesize);
+        float newXPos = tilesize * (int)(newPosition.x / tilesize);
+        float newZPos = tilesize * (int)(newPosition.z / tilesize);
         Vector3 newPos = new Vector3(newXPos, objectTransform.position.y, newZPos) + new Vector3(1, 0, 1) * tilesize / 2 + offset;
         objectTransform.position = newPos;
     }
@@ -101,7 +101,6 @@ public class GridDrawer : MonoBehaviour
     /// <returns> A bool indicating wether the position is inside the bounds of the grid </returns>
     public bool IsPositionInGrid(Vector3 position) {
 
-        position += offset;
         if (position.x > maxGridSize || position.z > maxGridSize || position.x < 0 || position.z < 0)
             return false;
 

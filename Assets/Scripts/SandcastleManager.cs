@@ -8,8 +8,8 @@ public class SandcastleManager : MonoBehaviour
     public ClayContainer clayContainer;
     public SandBlobParams sandBlobParameters;
     public GridDrawer gridDrawer;
-    public ClayObject sandBlobPreview;
-    
+    public GameObject sandBlobPreview;
+
     private RaycastHit hit;
     private Ray ray;
 
@@ -51,7 +51,7 @@ public class SandcastleManager : MonoBehaviour
             if (Physics.Raycast(ray, out hit)) {
 
                 gridDrawer.MoveObjectOnGrid(sandBlobPreview.transform, hit.point);
-                if (gridDrawer.IsPositionInGrid(sandBlobPreview.transform.position)) {
+                if (gridDrawer.IsPositionInGrid(sandBlobPreview.transform.localPosition)) {
 
                     //Change position of preview object
                     GridIndex gridIndex = gridDrawer.GetTileIndexFromPosition(sandBlobPreview.transform.position);
@@ -94,7 +94,7 @@ public class SandcastleManager : MonoBehaviour
         InitializeSandBlob(clayObject, sandBlobParameters, spawnPosition);
         clayObject.enabled = false;
         gridDrawer.AddObjectToGrid(gridIndex);
-        sandBlobPreview.transform.SetAsLastSibling();
+        //sandBlobPreview.transform.SetAsLastSibling();
         clayContainer.forceUpdateAllSolids(); 
         clayContainer.enableAllClayObjects(true);
     }
