@@ -10,6 +10,7 @@ public class SandcastleManager : MonoBehaviour
     public GridDrawer gridDrawer;
     public GameObject uiPanel;
     public GameObject sandBlobPreview;
+    //public OperationType currentOperationType = OperationType.ADD;
     public SandBlobType currentSandBlobType = SandBlobType.CUBE_1x1;
     public List<SandBlob> possibleSandBlobs = new List<SandBlob>();
 
@@ -36,12 +37,18 @@ public class SandcastleManager : MonoBehaviour
         public GameObject previewObject;
     }
 
+    [System.Serializable]
+    public enum OperationType
+    {
+        ADD = 0,
+        REMOVE = 1,
+    }
+
     private void OnValidate() {
 #if UNITY_EDITOR
         ChangeBlobType(currentSandBlobType);
 #endif
     }
-
 
     private void OnEnable() {
         clayContainer.enableAllClayObjects(true);
@@ -148,9 +155,6 @@ public class SandcastleManager : MonoBehaviour
         clayObject.blend = sandBlobType.data.blend /100;
         clayObject.attrs = new Vector4(sandBlobType.data.round /100, clayObject.attrs.y, clayObject.attrs.z, clayObject.attrs.w);
         clayObject.setPrimitiveType(sandBlobType.data.primitiveShape);
-        //if (position.y == 0)
-        //    clayObject.transform.position = new Vector3(position.x, .4f, position.z);
-        //else
-            clayObject.transform.position = new Vector3(position.x, position.y+.4f, position.z); ;
+        clayObject.transform.position = new Vector3(position.x, position.y+.4f, position.z); ;
     }
 }
