@@ -8,7 +8,6 @@ public class SandcastleManager : MonoBehaviour
     public bool isInBuildMode = false;
     public ClayContainer clayContainer;
     public GridDrawer gridDrawer;
-    public GameObject uiPanel;
     public GameObject sandBlobPreview;
     //public OperationType currentOperationType = OperationType.ADD;
     public SandBlobType currentSandBlobType = SandBlobType.CUBE_1x1;
@@ -65,8 +64,6 @@ public class SandcastleManager : MonoBehaviour
     {
         if (isInBuildMode) {
 
-            AwaitInput();
-
             //Ray cast down and if it's a buildable area, spawn sand blob on mouse click
             ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out hit)) {
@@ -111,29 +108,11 @@ public class SandcastleManager : MonoBehaviour
             possibleSandBlobs[i].previewObject.SetActive(false);
     }
 
-    private void ChangeBlobType(SandBlobType sandBlobType) {
+    public void ChangeBlobType(SandBlobType sandBlobType) {
         currentSandBlobType = sandBlobType;
         currentSandBlob = possibleSandBlobs.Find(p => p.data.type == sandBlobType);
         DisableAllPreviews();
         Debug.Log("Changed to " + currentSandBlob.data.type);
-    }
-
-    private void AwaitInput() {
-        if (Input.GetKeyDown(KeyCode.Alpha1)) {
-            ChangeBlobType(SandBlobType.CUBE_1x1);
-        } 
-        else if (Input.GetKeyDown(KeyCode.Alpha2)) {
-            ChangeBlobType(SandBlobType.SPHERE_1x1);
-        }
-        else if(Input.GetKeyDown(KeyCode.Alpha3)) {
-            ChangeBlobType(SandBlobType.BLOB_1x1);
-        } 
-        else if (Input.GetKeyDown(KeyCode.Delete)) {
-            ResetBuildZone();
-        }
-        else if (Input.GetKeyDown(KeyCode.Tab)) {
-            uiPanel.SetActive(!uiPanel.activeSelf);
-        }
     }
 
     private void AddSandBlob(GridIndex gridIndex, Vector3 spawnPosition) {

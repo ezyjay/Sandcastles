@@ -21,16 +21,16 @@ public class ShowIFDrawer : PropertyDrawer
         int enumValueInt = (int)enumValue;
 
         // Only draw if it matches
-        bool ok = (enumFieldInt & enumValueInt) != 0;
+        bool ok = (enumFieldInt == enumValueInt)/* != 0*/;
 
-        /*
-        Debug.Log("");
-        Debug.Log("Field  : [" + enumField.name + "]");
-        Debug.Log("Value  : [" + enumValue + "]");
-        Debug.Log("Field a: [" + enumField.intValue + "]");
-        Debug.Log("Value a: [" + (int) enumValue + "]");
-        Debug.Log("Ok?    : [" + ok + "]");
-        */
+
+        //Debug.Log("");
+        //Debug.Log("Field  : [" + enumField.name + "]");
+        //Debug.Log("Value  : [" + enumValue + "]");
+        //Debug.Log("Field a: [" + enumField.intValue + "]");
+        //Debug.Log("Value a: [" + (int)enumValue + "]");
+        //Debug.Log("Ok?    : [" + ok + "]");
+
 
         return ok;
     }

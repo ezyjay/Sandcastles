@@ -9,8 +9,21 @@ public class SandBlobData : ScriptableObject
     public Vector3 size = Vector3.one;
     public Color color = new Color(214, 171, 64, 255);
     public float blend = 100f;
-    public float round;
-    public int primitiveShape; //0=cube, 1=sphere
+    public int primitiveShape = 0; //0=cube, 1=sphere
+    [ShowIf("primitiveShape", 0)]
+    public float round = 0;
+    //[ShowIf("primitiveShape", 1)]
+    //public float sliceY = 0;
+
+    private void OnValidate() {
+        
+        if ((int)type >= 0 && (int)type < 100) {
+            size = Vector3.one;
+        }
+        else if ((int)type >= 100) {
+            size = new Vector3(3, 1, 3);
+        }
+    }
 }
 
 [System.Serializable]
@@ -22,4 +35,7 @@ public enum SandBlobType
     BLOB_1x1 = 2,
 
     // 100-200: 3x1 shapes
+    BLOB_3x1 = 100,
+    CUBE_3x1 = 101,
+    CYLINDER_3x1 = 102,
 }
