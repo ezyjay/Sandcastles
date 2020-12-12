@@ -12,24 +12,13 @@ public class GridDrawer : MonoBehaviour
     //Tracks the number of objects contained in each tile of the grid
     private int[,] grid;
 
-    public class GridIndex
-    {
-        public int x;
-        public int y;
-
-        public GridIndex(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-    }
-
     private void Awake() {
 
-        ClearGrid(); 
+        ClearGrid();
 
         float xOffset = transform.position.x % 1;
 
-        if (xOffset > tilesize/2)
+        if (xOffset > tilesize / 2)
             xOffset -= tilesize;
 
         float zOffset = transform.position.z % 1;
@@ -41,8 +30,8 @@ public class GridDrawer : MonoBehaviour
     /// </summary>
     /// <param name="position"> The position of an object </param>
     /// <returns> A GridIndex containing the x and y index of the tile </returns>
-    public GridIndex GetTileIndexFromPosition(Vector3 position) {
-        return new GridIndex((int)position.x, (int)position.z);
+    public Vector2Int GetTileIndexFromPosition(Vector3 position) {
+        return new Vector2Int((int)position.x, (int)position.z);
     }
 
     /// <summary>
@@ -56,10 +45,10 @@ public class GridDrawer : MonoBehaviour
     /// Increment the number of objects at index
     /// </summary>
     /// <param name="gridIndex"> The index of the tile </param>
-    public void AddObjectToGrid(GridIndex gridIndex) {
+    public void AddObjectToGrid(Vector2Int gridIndex) {
 
         grid[gridIndex.x, gridIndex.y] += 1;
-        Debug.Log("Object Add to grid at index " + gridIndex.x + ", " + gridIndex.y + ": Number of objects in tile = " + grid[gridIndex.x, gridIndex.y]);
+        //Debug.Log("Object Add to grid at index " + gridIndex.x + ", " + gridIndex.y + ": Number of objects in tile = " + grid[gridIndex.x, gridIndex.y]);
     }
 
     /// <summary>
@@ -67,7 +56,7 @@ public class GridDrawer : MonoBehaviour
     /// </summary>
     /// <param name="gridIndex"> The index of the tile </param>
     /// <returns> A bool indicating wether the tile contains an object of not </returns>
-    public bool HasObjectInTile(GridIndex gridIndex) {
+    public bool HasObjectInTile(Vector2Int gridIndex) {
 
         return grid[gridIndex.x, gridIndex.y] > 0;
     }
@@ -77,7 +66,7 @@ public class GridDrawer : MonoBehaviour
     /// </summary>
     /// <param name="gridIndex"> The index of the tile </param>
     /// <returns> The numbers of objects in the tile </returns>
-    public int GetNumberOfObjectsInTile(GridIndex gridIndex) {
+    public int GetNumberOfObjectsInTile(Vector2Int gridIndex) {
 
         return grid[gridIndex.x, gridIndex.y];
     }
@@ -99,10 +88,53 @@ public class GridDrawer : MonoBehaviour
     /// </summary>
     /// <param name="position"> The position of the object </param>
     /// <returns> A bool indicating wether the position is inside the bounds of the grid </returns>
-    public bool IsPositionInGrid(Vector3 position) {
+    public bool IsInsideGridBounds(Vector3 position) {
 
         if (position.x > maxGridSize || position.z > maxGridSize || position.x < 0 || position.z < 0)
             return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if the position is inside the grid
+    /// </summary>
+    /// <param name="position"> The position of the object </param>
+    /// <returns> A bool indicating wether the position is inside the bounds of the grid </returns>
+    public bool IsInsideGridBounds(Vector2Int index) {
+
+        if (index.x > maxGridSize-1 || index.y > maxGridSize-1 || index.x < 0 || index.y < 0)
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if the position is inside the grid
+    /// </summary>
+    /// <param name="position"> The position of the object </param>
+    /// <returns> A bool indicating wether the position is inside the bounds of the grid </returns>
+    public bool IndexesInsideGridBounds(List<Vector2Int> indexes) {
+
+        foreach (Vector2Int index in indexes) {
+            if (!IsInsideGridBounds(index))
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if all values of a list of indexes are the same
+    /// </summary>
+    /// <param name="indexes"> The list of indexes </param>
+    /// <returns> A bool indicating if all the grid values of indexes are the same or not </returns>
+    public bool IndexesHaveSameValue(List<Vector2Int> indexes) {
+
+        int firstIndexValue = GetNumberOfObjectsInTile(indexes[0]);
+        foreach (Vector2Int index in indexes) {
+            if (GetNumberOfObjectsInTile(index) != firstIndexValue)
+                return false;
+        }
 
         return true;
     }
