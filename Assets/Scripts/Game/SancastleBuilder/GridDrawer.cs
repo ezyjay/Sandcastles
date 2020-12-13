@@ -44,31 +44,40 @@ public class GridDrawer : MonoBehaviour
     /// <summary>
     /// Increment the number of objects at index
     /// </summary>
-    /// <param name="gridIndex"> The index of the tile </param>
-    public void AddObjectToGrid(Vector2Int gridIndex) {
+    /// <param name="index"> The index of the tile </param>
+    public void AddObjectToGridAtIndex(Vector2Int index) {
 
-        grid[gridIndex.x, gridIndex.y] += 1;
+        grid[index.x, index.y] += 1;
         //Debug.Log("Object Add to grid at index " + gridIndex.x + ", " + gridIndex.y + ": Number of objects in tile = " + grid[gridIndex.x, gridIndex.y]);
+    }
+
+    /// <summary>
+    /// Increment the number of objects at indexes
+    /// </summary>
+    /// <param name="indexes"> The list of indexes to add </param>
+    public void AddObjectToGridAtIndexes(List<Vector2Int> indexes) {
+        foreach (Vector2Int index in indexes)
+            AddObjectToGridAtIndex(index); 
     }
 
     /// <summary>
     /// Checks the number of objects in a tile and returns true if there are more than 0
     /// </summary>
-    /// <param name="gridIndex"> The index of the tile </param>
+    /// <param name="index"> The index of the tile </param>
     /// <returns> A bool indicating wether the tile contains an object of not </returns>
-    public bool HasObjectInTile(Vector2Int gridIndex) {
+    public bool HasObjectAtIndex(Vector2Int index) {
 
-        return grid[gridIndex.x, gridIndex.y] > 0;
+        return grid[index.x, index.y] > 0;
     }
 
     /// <summary>
     /// Gets the number of objects in a tile
     /// </summary>
-    /// <param name="gridIndex"> The index of the tile </param>
+    /// <param name="index"> The index of the tile </param>
     /// <returns> The numbers of objects in the tile </returns>
-    public int GetNumberOfObjectsInTile(Vector2Int gridIndex) {
+    public int GetValueAtIndex(Vector2Int index) {
 
-        return grid[gridIndex.x, gridIndex.y];
+        return grid[index.x, index.y];
     }
 
     /// <summary>
@@ -114,7 +123,7 @@ public class GridDrawer : MonoBehaviour
     /// </summary>
     /// <param name="position"> The position of the object </param>
     /// <returns> A bool indicating wether the position is inside the bounds of the grid </returns>
-    public bool IndexesInsideGridBounds(List<Vector2Int> indexes) {
+    public bool AreIndexesInsideGridBounds(List<Vector2Int> indexes) {
 
         foreach (Vector2Int index in indexes) {
             if (!IsInsideGridBounds(index))
@@ -130,12 +139,43 @@ public class GridDrawer : MonoBehaviour
     /// <returns> A bool indicating if all the grid values of indexes are the same or not </returns>
     public bool IndexesHaveSameValue(List<Vector2Int> indexes) {
 
-        int firstIndexValue = GetNumberOfObjectsInTile(indexes[0]);
+        int firstIndexValue = GetValueAtIndex(indexes[0]);
         foreach (Vector2Int index in indexes) {
-            if (GetNumberOfObjectsInTile(index) != firstIndexValue)
+            if (GetValueAtIndex(index) != firstIndexValue)
                 return false;
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Find the indexes in a square that surrounds a center index
+    /// </summary>
+    /// <param name="centerIndex"> The center index </param>
+    /// <param name="distanceToCheck"> The distance to find neighbours </param>
+    /// <param name="getDiagonalNeighbours"> A bool indicating if we should get the diagonaal neighbours or not</param>
+    /// <returns> Returns a list of neighbour indexes</returns>
+    public List<Vector2Int> GetNeighbourIndexes(Vector2Int centerIndex, Vector2Int distanceToCheck, bool getDiagonalNeighbours = true) {
+
+        List<Vector2Int> indexes = new List<Vector2Int>();
+
+        if (distanceToCheck == Vector2Int.zero) {
+            indexes.Add(centerIndex);
+        }
+        else {
+            for (int i = centerIndex.x - distanceToCheck.x; i <= centerIndex.x + distanceToCheck.x; i++) {
+                for (int j = centerIndex.y - distanceToCheck.y; j <= centerIndex.y + distanceToCheck.y; j++) {
+
+                    Vector2Int currentIndex = new Vector2Int(i, j);
+                    //If we don't want to fill diagonal neighbours check that the distance is the same as the amount to add
+                    if (getDiagonalNeighbours || Vector2Int.Distance(currentIndex, centerIndex) == distanceToCheck.x || currentIndex == centerIndex) {
+                        
+                        indexes.Add(currentIndex);
+                    }
+                }
+            }
+        }
+
+        return indexes;
     }
 }

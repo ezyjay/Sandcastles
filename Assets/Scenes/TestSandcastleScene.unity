@@ -451,7 +451,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   uiPanel: {fileID: 917781360}
-  sandcastleManager: {fileID: 1700080182}
   bigBlobs: 0
 --- !u!1 &477286994
 GameObject:
@@ -1510,7 +1509,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Right Click\nLeft Click \n     + Move\n\nT\n1\n2\n3\nDEL\n\nW\nS\nA\nD\n\nTab\n"
+  m_text: "Left Click\nRigt Click \n     + Move\n\nT\n1\n2\n3\nDEL\n\nW\nS\nA\nD\n\nTab\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2070,6 +2069,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1700080183}
   - component: {fileID: 1700080182}
+  - component: {fileID: 1700080185}
+  - component: {fileID: 1700080184}
   m_Layer: 0
   m_Name: SandcastlesManager
   m_TagString: Untagged
@@ -2090,24 +2091,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isInBuildMode: 1
-  clayContainer: {fileID: 697542318}
   gridDrawer: {fileID: 1298080464}
-  goodPositionMat: {fileID: 2100000, guid: fc8d659ab72869144a6b5aa9aaf7e60b, type: 2}
-  badPositionMat: {fileID: 2100000, guid: 847277dcc383dba4ca4f0fbd122d50f4, type: 2}
+  sandBlobManager: {fileID: 1700080184}
+  clayObjects: {fileID: 1700080185}
+  sandcastleUI: {fileID: 378709077}
   currentSandBlobType: 0
-  possibleSandBlobs:
-  - data: {fileID: 11400000, guid: 0d6ea544b4e0c714495dda55bcd54323, type: 2}
-    previewObject: {fileID: 890252584}
-  - data: {fileID: 11400000, guid: 6eecce9e53194f847a3cd64a0d19b819, type: 2}
-    previewObject: {fileID: 657290598}
-  - data: {fileID: 11400000, guid: 9674b3e4f17ece1429d47e408b8a3538, type: 2}
-    previewObject: {fileID: 515429313}
-  - data: {fileID: 11400000, guid: d8f77a8726704c741904c93d71456aa0, type: 2}
-    previewObject: {fileID: 81999944}
-  - data: {fileID: 11400000, guid: 203cc717627b53d439022e732dad83ae, type: 2}
-    previewObject: {fileID: 1851061073}
-  - data: {fileID: 11400000, guid: c7af055be764c7949b852ef30d60f20e, type: 2}
-    previewObject: {fileID: 989935939}
 --- !u!4 &1700080183
 Transform:
   m_ObjectHideFlags: 0
@@ -2125,6 +2113,46 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1700080184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1700080181}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec8ef3761dca37e46af9f3a74e78c91a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  goodPositionMat: {fileID: 2100000, guid: fc8d659ab72869144a6b5aa9aaf7e60b, type: 2}
+  badPositionMat: {fileID: 2100000, guid: 847277dcc383dba4ca4f0fbd122d50f4, type: 2}
+  possibleSandBlobs:
+  - data: {fileID: 11400000, guid: 9674b3e4f17ece1429d47e408b8a3538, type: 2}
+    previewObject: {fileID: 515429313}
+  - data: {fileID: 11400000, guid: 0d6ea544b4e0c714495dda55bcd54323, type: 2}
+    previewObject: {fileID: 890252584}
+  - data: {fileID: 11400000, guid: 6eecce9e53194f847a3cd64a0d19b819, type: 2}
+    previewObject: {fileID: 657290598}
+  - data: {fileID: 11400000, guid: d8f77a8726704c741904c93d71456aa0, type: 2}
+    previewObject: {fileID: 81999944}
+  - data: {fileID: 11400000, guid: 203cc717627b53d439022e732dad83ae, type: 2}
+    previewObject: {fileID: 1851061073}
+  - data: {fileID: 11400000, guid: c7af055be764c7949b852ef30d60f20e, type: 2}
+    previewObject: {fileID: 989935939}
+--- !u!114 &1700080185
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1700080181}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79b200abf45e3244da8142823030a6e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clayContainer: {fileID: 697542318}
 --- !u!1 &1841153883
 GameObject:
   m_ObjectHideFlags: 0
