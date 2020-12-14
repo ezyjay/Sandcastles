@@ -45,9 +45,11 @@ public class GridDrawer : MonoBehaviour
     /// Increment the number of objects at index
     /// </summary>
     /// <param name="index"> The index of the tile </param>
-    public void AddObjectToGridAtIndex(Vector2Int index) {
+    public void IncrementTileValueAtIndex(Vector2Int index, int maxTileValue = int.MaxValue) {
 
-        grid[index.x, index.y] += 1;
+        int incrementedTileValue = grid[index.x, index.y] + tilesize;
+        if (incrementedTileValue <= maxTileValue + tilesize)
+            grid[index.x, index.y] = incrementedTileValue;
         //Debug.Log("Object Add to grid at index " + gridIndex.x + ", " + gridIndex.y + ": Number of objects in tile = " + grid[gridIndex.x, gridIndex.y]);
     }
 
@@ -55,9 +57,30 @@ public class GridDrawer : MonoBehaviour
     /// Increment the number of objects at indexes
     /// </summary>
     /// <param name="indexes"> The list of indexes to add </param>
-    public void AddObjectToGridAtIndexes(List<Vector2Int> indexes) {
+    public void IncrementTileValueIndexes(List<Vector2Int> indexes, int maxTileValue = int.MaxValue) {
         foreach (Vector2Int index in indexes)
-            AddObjectToGridAtIndex(index); 
+            IncrementTileValueAtIndex(index, maxTileValue); 
+    }
+
+    /// <summary>
+    /// Decrement the number of objects at index
+    /// </summary>
+    /// <param name="index"> The index of the tile </param>
+    public void DecrementTileValueAtIndex(Vector2Int index, int minTileValue = 0) {
+
+        int decrementedTileValue = grid[index.x, index.y] - tilesize;
+        if (decrementedTileValue >= minTileValue)
+            grid[index.x, index.y] = decrementedTileValue;
+        //Debug.Log("Object Removed from grid at index " + gridIndex.x + ", " + gridIndex.y + ": Number of objects in tile = " + grid[gridIndex.x, gridIndex.y]);
+    }
+
+    /// <summary>
+    /// Decrement the number of objects at indexes
+    /// </summary>
+    /// <param name="indexes"> The list of indexes to add </param>
+    public void DecrementTileValueIndexes(List<Vector2Int> indexes, int minTileValue = 0) {
+        foreach (Vector2Int index in indexes)
+            DecrementTileValueAtIndex(index, minTileValue);
     }
 
     /// <summary>
@@ -142,6 +165,21 @@ public class GridDrawer : MonoBehaviour
         int firstIndexValue = GetValueAtIndex(indexes[0]);
         foreach (Vector2Int index in indexes) {
             if (GetValueAtIndex(index) != firstIndexValue)
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if all values of a list of indexes are the smaller than a certain index
+    /// </summary>
+    /// <param name="indexes"> The list of indexes </param>
+    /// <returns> A bool indicating if all the grid values of indexes are >= to main index </returns>
+    public bool IndexesHaveSameOrBiggerValueThanIndex(Vector2Int mainIndex, List<Vector2Int> indexes) {
+
+        foreach (Vector2Int index in indexes) {
+            if (GetValueAtIndex(index) < GetValueAtIndex(mainIndex))
                 return false;
         }
 

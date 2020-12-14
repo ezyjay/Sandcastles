@@ -10,25 +10,16 @@ public class SandClayObjects : MonoBehaviour
 {
     public ClayContainer clayContainer;
 
+    private ClayObject baseObject;
     private List<ClayObject> allClayObjects = new List<ClayObject>();
+    private List<ClayObject> undoneClayObjects = new List<ClayObject>();
 
-    public void Initialize() {
-        ToggleSolids(true);
-        clayContainer.GetComponentInChildren<ClayObject>().enabled = false;
-    }
-
-    public Transform AddClayObject(SandBlobData data, Vector3 spawnPosition) {
-        
-        ClayObject clayObject = clayContainer.addClayObject();
-        SetClayObjectParameters(clayObject, data, spawnPosition);
-        clayObject.enabled = false;
-        allClayObjects.Add(clayObject);
-
-        return clayObject.transform;
+    private void Awake() {
+        baseObject = clayContainer.GetComponentInChildren<ClayObject>();
     }
 
     private void SetClayObjectParameters(ClayObject clayObject, SandBlobData data, Vector3 position) {
-        
+
         clayObject.transform.localScale = data.size;
         clayObject.color = data.color;
         clayObject.blend = data.blend / 100;
@@ -37,13 +28,45 @@ public class SandClayObjects : MonoBehaviour
         clayObject.transform.position = new Vector3(position.x, position.y + .4f, position.z); ;
     }
 
+    private void DeleteObjectsInUndoneList() {
+        if (undoneClayObjects.Count > 0) {
+            foreach (ClayObject clayObject in undoneClayObjects) {
+                Destroy(clayObject.gameObject);
+            }
+            undoneClayObjects.Clear();
+        }
+    }
+
+    public void Initialize() {
+        ToggleSolids(true);
+        baseObject.enabled = false;
+    }
+
+    public Transform AddClayObject(SandBlobData data, Vector3 spawnPosition) {
+        
+        ClayObject clayObject = clayContainer.addClayObject();
+        SetClayObjectParameters(clayObject, data, spawnPosition);
+        clayObject.enabled = false;
+        allClayObjects.Add(clayObject);
+        DeleteObjectsInUndoneList();
+
+        return clayObject.transform;
+    }
+
     public void UpdateSolids() {
         clayContainer.forceUpdateAllSolids();
         ToggleSolids(true);
     }
 
     public void ToggleSolids(bool on) {
-        clayContainer.enableAllClayObjects(on);
+
+        if (baseObject == null)
+            baseObject = clayContainer.GetComponentInChildren<ClayObject>();
+
+        baseObject.gameObject.SetActive(true);
+        foreach (ClayObject clayObject in allClayObjects) {
+            clayObject.gameObject.SetActive(true);
+        }
     }
 
     public void DestroyAllSolids(bool includeBase = false) {
@@ -57,4 +80,41 @@ public class SandClayObjects : MonoBehaviour
         }
         allClayObjects.Clear();
     }
+
+
+    public Vector3 Undo() {
+
+        if (allClayObjects.Count > 0) {
+            ClayObject lastClayObject = allClayObjects[allClayObjects.Count - 1];
+            undoneClayObjects.Add(lastClayObject);
+            allClayObjects.Remove(lastClayObject);
+            lastClayObject.enabled = true;
+            lastClayObject.transform.hasChanged = true;
+            lastClayObject.gameObject.SetActive(false);
+            lastClayObject.enabled = false;
+            UpdateSolids();
+
+            return lastClayObject.transform.position;
+        }
+        return Vector3.zero;
+    }
+
+    public Vector3 Redo() {
+
+        if (undoneClayObjects.Count > 0) {
+            ClayObject lastRemovedClayObject = undoneClayObjects[undoneClayObjects.Count - 1];
+            undoneClayObjects.Remove(lastRemovedClayObject);
+            allClayObjects.Add(lastRemovedClayObject);
+            lastRemovedClayObject.enabled = true;
+            lastRemovedClayObject.transform.hasChanged = true;
+            lastRemovedClayObject.gameObject.SetActive(true);
+            lastRemovedClayObject.enabled = false;
+            UpdateSolids();
+
+            return lastRemovedClayObject.transform.position;
+        }
+        return Vector3.zero;
+    }
+
+
 }

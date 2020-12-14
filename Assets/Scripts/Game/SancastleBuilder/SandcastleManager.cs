@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
@@ -59,6 +60,8 @@ public class SandcastleManager : MonoBehaviour
         sandcastleUI.SandBlobChanged += OnCurrentSandBlobChanged;
         sandcastleUI.ResetBuildZone += ResetBuildZone;
         sandcastleUI.MouseClicked += OnMouseClicked;
+        sandcastleUI.UndoLastAction += UndoLastAction;
+        sandcastleUI.RedoAction += RedoAction;
 
         sandClayObjects.Initialize();
         sandBlobManager.Initialize(currentSandBlobType);
@@ -68,6 +71,8 @@ public class SandcastleManager : MonoBehaviour
         sandcastleUI.SandBlobChanged -= OnCurrentSandBlobChanged;
         sandcastleUI.ResetBuildZone -= ResetBuildZone;
         sandcastleUI.MouseClicked -= OnMouseClicked;
+        sandcastleUI.UndoLastAction -= UndoLastAction;
+        sandcastleUI.RedoAction -= RedoAction;
     }
 
     private void Update()
@@ -102,17 +107,17 @@ public class SandcastleManager : MonoBehaviour
                     spawnPosition = sandBlobManager.GetSpawnPosition();
                     shapeIndexes = GetShapeGridIndexes(gridIndexSpawn);
 
-                    //Check if shape of blob is inside the grid
-                    if (gridDrawer.AreIndexesInsideGridBounds(shapeIndexes) && gridDrawer.IndexesHaveSameValue(shapeIndexes)) {
+                    //Check if current grid position already has something in it to set the Y value of blob preview
+                    if (gridDrawer.HasObjectAtIndex(gridIndexSpawn)) {
+                        float newYPosition = spawnPosition.y + gridDrawer.GetValueAtIndex(gridIndexSpawn) * gridDrawer.tilesize;
+                        spawnPosition = new Vector3(spawnPosition.x, newYPosition, spawnPosition.z);
+                        sandBlobManager.SetBlobPreviewYPosition(newYPosition - .2f * gridDrawer.tilesize);
+                    } else {
+                        sandBlobManager.SetBlobPreviewYPosition(transform.position.y);
+                    }
 
-                        //Check if current grid position already has something in it to set the Y value of blob preview
-                        if (gridDrawer.HasObjectAtIndex(gridIndexSpawn)) {
-                            float newYPosition = spawnPosition.y + gridDrawer.GetValueAtIndex(gridIndexSpawn) * gridDrawer.tilesize;
-                            spawnPosition = new Vector3(spawnPosition.x, newYPosition, spawnPosition.z);
-                            sandBlobManager.SetBlobPreviewYPosition(newYPosition - .2f * gridDrawer.tilesize);
-                        } else {
-                            sandBlobManager.SetBlobPreviewYPosition(transform.position.y);
-                        }
+                    //Check if shape of blob is inside the grid and on a flat surface
+                    if (gridDrawer.AreIndexesInsideGridBounds(shapeIndexes) && gridDrawer.IndexesHaveSameOrBiggerValueThanIndex(gridIndexSpawn, shapeIndexes)) {
 
                         //Can build
                         sandBlobManager.BlobAtCorrectPosition(true);
@@ -134,6 +139,24 @@ public class SandcastleManager : MonoBehaviour
         currentSandBlobType = sandBlobManager.ChangeBlobType(sandBlobType);
     }
 
+    private void RedoAction() {
+        Vector3 addedObjectPosition = sandClayObjects.Redo();
+        if (addedObjectPosition != Vector3.zero) {
+            Vector2Int addedObjectGridIndex = gridDrawer.GetTileIndexFromPosition(addedObjectPosition);
+            List<Vector2Int> addedObjectShapeIndexes = GetShapeGridIndexes(addedObjectGridIndex);
+            gridDrawer.IncrementTileValueIndexes(addedObjectShapeIndexes, gridDrawer.GetValueAtIndex(addedObjectGridIndex));
+        }
+    }
+
+    private void UndoLastAction() {
+        Vector3 removedObjectPosition = sandClayObjects.Undo();
+        if (removedObjectPosition != Vector3.zero) {
+            Vector2Int removedObjectGridIndex = gridDrawer.GetTileIndexFromPosition(removedObjectPosition);
+            List<Vector2Int> removedObjectShapeIndexes = GetShapeGridIndexes(removedObjectGridIndex);
+            gridDrawer.DecrementTileValueIndexes(removedObjectShapeIndexes);
+        }
+    }
+
     private void AddSandBlob(Vector2Int gridIndex, Vector3 spawnPosition) {
 
         //Create clay object
@@ -143,7 +166,7 @@ public class SandcastleManager : MonoBehaviour
         sandBlobManager.EnableSandBlobCollider(clayObject);
 
         //Updade grid and other clay objects
-        gridDrawer.AddObjectToGridAtIndexes(shapeIndexes);
+        gridDrawer.IncrementTileValueIndexes(shapeIndexes, gridDrawer.GetValueAtIndex(gridIndexSpawn));
         sandClayObjects.UpdateSolids();
     }
 
