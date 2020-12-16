@@ -53,9 +53,8 @@ public class SandcastleUI : MonoBehaviour
                 SandBlobChanged?.Invoke(SandBlobType.CYLINDER_3x1);
             } else if (Input.GetKeyDown(buildBlob)) {
                 SandBlobChanged?.Invoke(SandBlobType.BLOB_3x1);
-            } 
-        }
-        else {
+            }
+        } else {
             if (Input.GetKeyDown(buildCube)) {
                 SandBlobChanged?.Invoke(SandBlobType.CUBE_1x1);
             } else if (Input.GetKeyDown(buildSphere)) {
@@ -70,27 +69,36 @@ public class SandcastleUI : MonoBehaviour
             removeModeActive = !removeModeActive;
             if (removeModeActive)
                 BuildModeChanged?.Invoke(OperationType.SUBTRACT);
-           else
+            else
                 BuildModeChanged?.Invoke(OperationType.ADD);
         }
 
         //Check other key inputs
         if (Input.GetKeyDown(resetBuildZone)) {
             ResetBuildZone?.Invoke();
-        }
-        else if (Input.GetKeyDown(toggleUI)) {
+        } else if (Input.GetKeyDown(toggleUI)) {
             ToggleUIPanel(!uiPanel.activeSelf);
-        }
-        else if (Input.GetKeyDown(undo)) {
+        } else if (Input.GetKeyDown(undo)) {
             UndoLastAction?.Invoke();
-        } 
-        else if (Input.GetKeyDown(redo)) {
+        } else if (Input.GetKeyDown(redo)) {
             RedoAction?.Invoke();
         }
 
         //Detect mouse click
         if (Input.GetMouseButtonDown(0))
             MouseClicked?.Invoke();
+    }
+
+    public void Undo() {
+        UndoLastAction?.Invoke();
+    }
+
+    public void Redo() {
+        RedoAction?.Invoke();
+    }
+
+    public void DeleteAll() {
+        ResetBuildZone?.Invoke();
     }
 
     private void ToggleUIPanel(bool on) {
