@@ -1,16 +1,39 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+
+[System.Serializable]
+public class TileValue
+{
+    public int height = 0;
+    public List<int> verticalValues = new List<int>();
+
+    public TileValue(int listSize) {
+        height = 0;
+        verticalValues = new List<int>(new int[listSize]);
+    }
+
+    public void AddObjectAtVerticalIndex(int index) {
+        verticalValues[index] = 1;
+    }
+
+    public void RemoveObjectAtVerticalIndex(int index) {
+        verticalValues[index] = 0;
+    }
+
+    public bool HasObjectAtVerticalIndex(int index) {
+        return verticalValues[index] == 1;
+    }
+}
 
 public class GridDrawer : MonoBehaviour
 {
     public int maxGridSize = 10;
-    public int tilesize = 1;
+    public int tileSize = 1;
     public SpriteRenderer tile;
 
     private Vector3 offset;
     //Tracks the number of objects contained in each tile of the grid
-    private int[,] grid;
+    private TileValue[,] grid;
 
     private void Awake() {
 
@@ -18,8 +41,8 @@ public class GridDrawer : MonoBehaviour
 
         float xOffset = transform.position.x % 1;
 
-        if (xOffset > tilesize / 2)
-            xOffset -= tilesize;
+        if (xOffset > tileSize / 2)
+            xOffset -= tileSize;
 
         float zOffset = transform.position.z % 1;
         offset = new Vector3(xOffset, 0, zOffset);
@@ -38,7 +61,13 @@ public class GridDrawer : MonoBehaviour
     /// Clears the grid
     /// </summary>
     public void ClearGrid() {
-        grid = new int[maxGridSize, maxGridSize];
+
+         grid = new TileValue[maxGridSize, maxGridSize];
+        for (int i = 0; i < maxGridSize; i++) {
+            for (int j = 0; j < maxGridSize; j++) {
+                grid[i, j] = new TileValue(maxGridSize);
+            }
+        }
     }
 
     /// <summary>
@@ -47,10 +76,12 @@ public class GridDrawer : MonoBehaviour
     /// <param name="index"> The index of the tile </param>
     public void IncrementTileValueAtIndex(Vector2Int index, int maxTileValue = int.MaxValue) {
 
-        int incrementedTileValue = grid[index.x, index.y] + tilesize;
-        if (incrementedTileValue <= maxTileValue + tilesize)
-            grid[index.x, index.y] = incrementedTileValue;
-        //Debug.Log("Object Add to grid at index " + gridIndex.x + ", " + gridIndex.y + ": Number of objects in tile = " + grid[gridIndex.x, gridIndex.y]);
+        int incrementedTileValue = GetHeightAtIndex(index) + tileSize;
+        if (incrementedTileValue <= maxTileValue + tileSize) {
+            SetHeightAtIndex(index, incrementedTileValue);
+            AddValueAtVerticalIndex(index, incrementedTileValue - 1);
+            //Debug.Log("Object Add to grid at index " + gridIndex.x + ", " + gridIndex.y + ": Number of objects in tile = " + grid[gridIndex.x, gridIndex.y]);
+        }
     }
 
     /// <summary>
@@ -59,28 +90,7 @@ public class GridDrawer : MonoBehaviour
     /// <param name="indexes"> The list of indexes to add </param>
     public void IncrementTileValueIndexes(List<Vector2Int> indexes, int maxTileValue = int.MaxValue) {
         foreach (Vector2Int index in indexes)
-            IncrementTileValueAtIndex(index, maxTileValue); 
-    }
-
-    /// <summary>
-    /// Decrement the number of objects at index
-    /// </summary>
-    /// <param name="index"> The index of the tile </param>
-    public void DecrementTileValueAtIndex(Vector2Int index, int minTileValue = 0) {
-
-        int decrementedTileValue = grid[index.x, index.y] - tilesize;
-        if (decrementedTileValue >= minTileValue)
-            grid[index.x, index.y] = decrementedTileValue;
-        //Debug.Log("Object Removed from grid at index " + gridIndex.x + ", " + gridIndex.y + ": Number of objects in tile = " + grid[gridIndex.x, gridIndex.y]);
-    }
-
-    /// <summary>
-    /// Decrement the number of objects at indexes
-    /// </summary>
-    /// <param name="indexes"> The list of indexes to add </param>
-    public void DecrementTileValueIndexes(List<Vector2Int> indexes, int minTileValue = 0) {
-        foreach (Vector2Int index in indexes)
-            DecrementTileValueAtIndex(index, minTileValue);
+            IncrementTileValueAtIndex(index, maxTileValue);
     }
 
     /// <summary>
@@ -89,8 +99,7 @@ public class GridDrawer : MonoBehaviour
     /// <param name="index"> The index of the tile </param>
     /// <returns> A bool indicating wether the tile contains an object of not </returns>
     public bool HasObjectAtIndex(Vector2Int index) {
-
-        return grid[index.x, index.y] > 0;
+        return GetHeightAtIndex(index) > 0;
     }
 
     /// <summary>
@@ -98,9 +107,109 @@ public class GridDrawer : MonoBehaviour
     /// </summary>
     /// <param name="index"> The index of the tile </param>
     /// <returns> The numbers of objects in the tile </returns>
-    public int GetValueAtIndex(Vector2Int index) {
+    public int GetHeightAtIndex(Vector2Int index) {
+        return GetTileValue(index).height;
+    }
 
+    /// <summary>
+    /// Sets the number of objects in a tile
+    /// </summary>
+    /// <param name="index">The index of the tile </param>
+    /// <param name="newHeight">The new value </param>
+    public void SetHeightAtIndex(Vector2Int index, int newHeight) {
+        GetTileValue(index).height = newHeight;
+    }
+
+    /// <summary>
+    /// Gets the TileValue object at an index
+    /// </summary>
+    /// <param name="index">The index of the tile </param>
+    /// <returns> the TileValue </returns>
+    public TileValue GetTileValue(Vector2Int index) {
         return grid[index.x, index.y];
+    }
+
+    /// <summary>
+    /// Gets a list of ints corresponding to the vertical tiles at an index
+    /// </summary>
+    /// <param name="index"> The index on the tile</param>
+    /// <returns></returns>
+    public List<int> GetVerticalValuesAtIndex(Vector2Int index) {
+        return GetTileValue(index).verticalValues;
+    }
+
+    /// <summary>
+    /// Gets the vertival value at an index
+    /// </summary>
+    /// <param name="index">The tile index</param>
+    /// <param name="verticalIndex">The vertical index</param>
+    /// <returns> An int indicating if there is an object at the index</returns>
+    public int GetVerticalValueAtIndex(Vector2Int index, int verticalIndex) {
+        return GetTileValue(index).verticalValues[verticalIndex];
+    }
+
+    /// <summary>
+    /// Adds an object to a vertical index
+    /// </summary>
+    /// <param name="index">The tile index</param>
+    /// <param name="verticalIndex">The vertical index</param>
+    public void AddValueAtVerticalIndex(Vector2Int index, int verticalIndex) {
+
+        //Add the object
+        GetTileValue(index).AddObjectAtVerticalIndex(verticalIndex);
+
+        //Ensure that tileHeightValue is coherent with vertical values
+        EnsureHeightAndVerticalValuesAreCoherent(index, verticalIndex);
+    }
+
+    /// <summary>
+    /// Adds an object to a vertical index at multiples indexes
+    /// </summary>
+    /// <param name="index">The list of indexes</param>
+    /// <param name="verticalIndex">The vertical index</param>
+    public void AddValueAtVerticalIndexes(List<Vector2Int> indexes, int verticalIndex) {
+
+        foreach (Vector2Int index in indexes) {
+            AddValueAtVerticalIndex(index, verticalIndex);
+        }
+    }
+
+    /// <summary>
+    /// Removes an object from a vertical index
+    /// </summary>
+    /// <param name="index"> The tile index</param>
+    /// <param name="verticalIndex"> The vertical index</param>
+    public void RemoveValueAtVerticalIndex(Vector2Int index, int verticalIndex) {
+
+        //Remove the object
+        GetTileValue(index).RemoveObjectAtVerticalIndex(verticalIndex);
+
+        //Ensure that tileHeightValue is coherent with vertical values
+        EnsureHeightAndVerticalValuesAreCoherent(index, verticalIndex);
+    }
+
+    /// <summary>
+    /// Removes an object to a vertical index at multiples indexes
+    /// </summary>
+    /// <param name="index">The list of indexes</param>
+    /// <param name="verticalIndex">The vertical index</param>
+    public void RemoveValueAtVerticalIndexes(List<Vector2Int> indexes, int verticalIndex) {
+
+        foreach (Vector2Int index in indexes) {
+            RemoveValueAtVerticalIndex(index, verticalIndex);
+        }
+    }
+
+
+    private void EnsureHeightAndVerticalValuesAreCoherent(Vector2Int index, int verticalIndex) {
+        int newTileHeightValue = 0;
+        for (int i = GetHeightAtIndex(index); i >= 0; i--) {
+            if (GetTileValue(index).HasObjectAtVerticalIndex(i)) {
+                newTileHeightValue = i + 1;
+                break;
+            }
+        }
+        SetHeightAtIndex(index, newTileHeightValue);
     }
 
     /// <summary>
@@ -108,10 +217,14 @@ public class GridDrawer : MonoBehaviour
     /// </summary>
     /// <param name="objectTransform"> The object to move</param>
     /// <param name="newPosition"> The new position of the object </param>
-    public void MoveObjectOnGrid(Transform objectTransform, Vector3 newPosition) {
-        float newXPos = tilesize * (int)(newPosition.x / tilesize);
-        float newZPos = tilesize * (int)(newPosition.z / tilesize);
-        Vector3 newPos = new Vector3(newXPos, objectTransform.position.y, newZPos) + new Vector3(1, 0, 1) * tilesize / 2 + offset;
+    public void MoveObjectOnGrid(Transform objectTransform, Vector3 newPosition, bool changeY = false) {
+        float newXPos = tileSize * (int)(newPosition.x / tileSize);
+        float newZPos = tileSize * (int)(newPosition.z / tileSize);
+        Vector3 newPos = new Vector3(newXPos, objectTransform.position.y, newZPos) + new Vector3(1, 0, 1) * tileSize / 2 + offset;
+        if (changeY) {
+            float newYPos = tileSize * (int)(newPosition.y / tileSize);
+            newPos = new Vector3(newXPos, newYPos, newZPos) + new Vector3(1, 0, 1) * tileSize / 2 + offset;
+        }
         objectTransform.position = newPos;
     }
 
@@ -162,9 +275,9 @@ public class GridDrawer : MonoBehaviour
     /// <returns> A bool indicating if all the grid values of indexes are the same or not </returns>
     public bool IndexesHaveSameValue(List<Vector2Int> indexes) {
 
-        int firstIndexValue = GetValueAtIndex(indexes[0]);
+        int firstIndexValue = GetHeightAtIndex(indexes[0]);
         foreach (Vector2Int index in indexes) {
-            if (GetValueAtIndex(index) != firstIndexValue)
+            if (GetHeightAtIndex(index) != firstIndexValue)
                 return false;
         }
 
@@ -179,7 +292,7 @@ public class GridDrawer : MonoBehaviour
     public bool IndexesHaveSameOrBiggerValueThanIndex(Vector2Int mainIndex, List<Vector2Int> indexes) {
 
         foreach (Vector2Int index in indexes) {
-            if (GetValueAtIndex(index) < GetValueAtIndex(mainIndex))
+            if (GetHeightAtIndex(index) < GetHeightAtIndex(mainIndex))
                 return false;
         }
 

@@ -33,6 +33,8 @@ public enum SandBlobType
     CUBE_1x1 = 0,
     SPHERE_1x1 = 1,
     BLOB_1x1 = 2,
+    CYLINDER_1x1 = 3,
+    TORUS_1x1 = 4,
 
     // 100-200: 3x1 shapes
     BLOB_3x1 = 100,

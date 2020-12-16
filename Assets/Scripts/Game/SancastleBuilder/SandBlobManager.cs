@@ -9,9 +9,11 @@ public class SandBlobManager : MonoBehaviour
 
     public SandBlob CurrentSandBlob { get => currentSandBlob; set => currentSandBlob = value; }
     public GameObject CurrentSandBlobPreview { get => currentSandBlob.previewObject; }
+    public GameObject CurrentTempRemoveObject { get => currentTempRemoveObject; set => currentTempRemoveObject = value; }
 
     private SandBlob currentSandBlob;
     private MeshRenderer currentBlobMeshRenderer;
+    private GameObject currentTempRemoveObject;
 
     public void Initialize(SandBlobType sandBlobType) {
         DisableAllPreviews();
@@ -23,7 +25,7 @@ public class SandBlobManager : MonoBehaviour
         currentSandBlob = possibleSandBlobs.Find(p => p.data.type == sandBlobType);
         currentBlobMeshRenderer = CurrentSandBlobPreview.GetComponentInChildren<MeshRenderer>();
         DisableAllPreviews();
-        Debug.Log("Changed to " + currentSandBlob.data.type);
+        //Debug.Log("Changed to " + currentSandBlob.data.type);
         return sandBlobType;
     }
 
@@ -46,6 +48,7 @@ public class SandBlobManager : MonoBehaviour
     public void EnableSandBlobCollider(Transform parent) {
         GameObject templateColliderObject = CurrentSandBlobPreview.GetComponentInChildren<Rigidbody>(true).gameObject;
         GameObject instanciatedColliderObject = Instantiate(templateColliderObject, parent);
+
         instanciatedColliderObject.SetActive(true);
     }
 

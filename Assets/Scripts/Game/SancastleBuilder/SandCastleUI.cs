@@ -6,13 +6,15 @@ using UnityEngine;
 public class SandcastleUI : MonoBehaviour
 {
     public GameObject uiPanel;
-    public KeyCode resetBuildZone, toggleUI, toggleBigBlobs, undo, redo;
+    public KeyCode resetBuildZone, toggleUI, toggleBigBlobs, undo, redo, toggleRemove;
     public KeyCode buildCube, buildSphere, buildBlob;
 
     public Action<SandBlobType> SandBlobChanged;
+    public Action<OperationType> BuildModeChanged;
     public Action ResetBuildZone, MouseClicked, UndoLastAction, RedoAction;
 
     public bool bigBlobs = false;
+    public bool removeModeActive = false;
 
     public void CheckInput(SandBlobType sandBlobType) {
 
@@ -61,6 +63,15 @@ public class SandcastleUI : MonoBehaviour
             } else if (Input.GetKeyDown(buildBlob)) {
                 SandBlobChanged?.Invoke(SandBlobType.BLOB_1x1);
             }
+        }
+
+        //Change operation type
+        if (Input.GetKeyDown(toggleRemove)) {
+            removeModeActive = !removeModeActive;
+            if (removeModeActive)
+                BuildModeChanged?.Invoke(OperationType.SUBTRACT);
+           else
+                BuildModeChanged?.Invoke(OperationType.ADD);
         }
 
         //Check other key inputs

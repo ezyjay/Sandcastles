@@ -18,11 +18,15 @@ public class SandClayObjects : MonoBehaviour
         baseObject = clayContainer.GetComponentInChildren<ClayObject>();
     }
 
-    private void SetClayObjectParameters(ClayObject clayObject, SandBlobData data, Vector3 position) {
+    private void SetClayObjectParameters(ClayObject clayObject, SandBlobData data, Vector3 position, OperationType operationType = OperationType.ADD) {
 
         clayObject.transform.localScale = data.size;
         clayObject.color = data.color;
+
         clayObject.blend = data.blend / 100;
+        if (operationType == OperationType.SUBTRACT)
+            clayObject.blend *= -1;
+
         clayObject.attrs = new Vector4(data.round / 100, clayObject.attrs.y, clayObject.attrs.z, clayObject.attrs.w);
         clayObject.setPrimitiveType(data.primitiveShape);
         clayObject.transform.position = new Vector3(position.x, position.y + .4f, position.z); ;
@@ -31,10 +35,17 @@ public class SandClayObjects : MonoBehaviour
     private void DeleteObjectsInUndoneList() {
         if (undoneClayObjects.Count > 0) {
             foreach (ClayObject clayObject in undoneClayObjects) {
-                Destroy(clayObject.gameObject);
+                if (clayObject != null)
+                    Destroy(clayObject.gameObject);
             }
             undoneClayObjects.Clear();
         }
+    }
+
+    private void CommitClayObject(ClayObject clayObject) {
+        clayObject.enabled = false;
+        allClayObjects.Add(clayObject);
+        DeleteObjectsInUndoneList();
     }
 
     public void Initialize() {
@@ -42,15 +53,20 @@ public class SandClayObjects : MonoBehaviour
         baseObject.enabled = false;
     }
 
-    public Transform AddClayObject(SandBlobData data, Vector3 spawnPosition) {
+    public Transform AddClayObject(SandBlobData data, Vector3 spawnPosition, OperationType operationType = OperationType.ADD, bool temporaryAdd = false) {
         
         ClayObject clayObject = clayContainer.addClayObject();
-        SetClayObjectParameters(clayObject, data, spawnPosition);
-        clayObject.enabled = false;
-        allClayObjects.Add(clayObject);
-        DeleteObjectsInUndoneList();
+        SetClayObjectParameters(clayObject, data, spawnPosition, operationType);
+
+        if (!temporaryAdd) 
+            CommitClayObject(clayObject);
 
         return clayObject.transform;
+    }
+
+    public void CommitClayObject(GameObject tempClayObject) {
+        ClayObject clayObject = tempClayObject.GetComponent<ClayObject>();
+        CommitClayObject(clayObject);
     }
 
     public void UpdateSolids() {
@@ -82,7 +98,9 @@ public class SandClayObjects : MonoBehaviour
     }
 
 
-    public Vector3 Undo() {
+    public Vector3 Undo(out bool lastObjectWasSubstract) {
+
+        lastObjectWasSubstract = false;
 
         if (allClayObjects.Count > 0) {
             ClayObject lastClayObject = allClayObjects[allClayObjects.Count - 1];
@@ -92,6 +110,10 @@ public class SandClayObjects : MonoBehaviour
             lastClayObject.transform.hasChanged = true;
             lastClayObject.gameObject.SetActive(false);
             lastClayObject.enabled = false;
+
+            if (lastClayObject.blend < 0)
+                lastObjectWasSubstract = true;
+
             UpdateSolids();
 
             return lastClayObject.transform.position;
@@ -99,9 +121,13 @@ public class SandClayObjects : MonoBehaviour
         return Vector3.zero;
     }
 
-    public Vector3 Redo() {
+    public Vector3 Redo(out bool lastRemovedObjectWasSubstract) {
+
+
+        lastRemovedObjectWasSubstract = false;
 
         if (undoneClayObjects.Count > 0) {
+
             ClayObject lastRemovedClayObject = undoneClayObjects[undoneClayObjects.Count - 1];
             undoneClayObjects.Remove(lastRemovedClayObject);
             allClayObjects.Add(lastRemovedClayObject);
@@ -109,6 +135,10 @@ public class SandClayObjects : MonoBehaviour
             lastRemovedClayObject.transform.hasChanged = true;
             lastRemovedClayObject.gameObject.SetActive(true);
             lastRemovedClayObject.enabled = false;
+
+            if (lastRemovedClayObject.blend < 0)
+                lastRemovedObjectWasSubstract = true;
+
             UpdateSolids();
 
             return lastRemovedClayObject.transform.position;
