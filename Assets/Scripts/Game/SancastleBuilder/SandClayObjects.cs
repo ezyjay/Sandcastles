@@ -27,7 +27,14 @@ public class SandClayObjects : MonoBehaviour
         if (operationType == OperationType.SUBTRACT)
             clayObject.blend *= -1;
 
-        clayObject.attrs = new Vector4(data.round / 100, clayObject.attrs.y, clayObject.attrs.z, clayObject.attrs.w);
+        //Cube or cylinder
+        if (data.primitiveShape == 0 || data.primitiveShape == 2)
+            clayObject.attrs = new Vector4(data.round / 100, clayObject.attrs.y, clayObject.attrs.z, clayObject.attrs.w); 
+        //Torus
+        else if (data.primitiveShape == 3)
+            clayObject.attrs = new Vector4(data.fat / 100, clayObject.attrs.y, clayObject.attrs.z, clayObject.attrs.w);
+
+
         clayObject.setPrimitiveType(data.primitiveShape);
         clayObject.transform.position = new Vector3(position.x, position.y + .4f, position.z); ;
     }

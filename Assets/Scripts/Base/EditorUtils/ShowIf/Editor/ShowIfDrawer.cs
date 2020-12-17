@@ -8,21 +8,30 @@ public class ShowIFDrawer : PropertyDrawer
     private bool CanShowProperty (SerializedProperty property)
     {
         ShowIfAttribute showIf = attribute as ShowIfAttribute;
-        //if ((attribute as ProgressBarAttribute).hideWhenZero && property.floatValue <= 0)
-        //    return;
-
+        
         var enumField = property.serializedObject.FindProperty(showIf.EnumField);
         var enumValue = showIf.EnumValue;
 
-        //bool ok = enumField.enumValueIndex & enumValue;
-        //object enumFieldValue = enumField.objectReferenceValue;
+        var enumValue2 = showIf.EnumValue2;
 
-        int enumFieldInt = enumField.intValue;
-        int enumValueInt = (int)enumValue;
+        bool ok = false;
 
-        // Only draw if it matches
-        bool ok = (enumFieldInt == enumValueInt)/* != 0*/;
+        if (enumValue2 != null) {
 
+            int enumFieldInt = enumField.intValue;
+            int enumValueInt = (int)enumValue;
+            int enumValueInt2 = (int)enumValue2;
+
+            ok = (enumFieldInt == enumValueInt || enumFieldInt == enumValueInt2);
+
+        } else {
+
+            int enumFieldInt = enumField.intValue;
+            int enumValueInt = (int)enumValue;
+
+            // Only draw if it matches
+            ok = (enumFieldInt == enumValueInt)/* != 0*/;
+        }
 
         //Debug.Log("");
         //Debug.Log("Field  : [" + enumField.name + "]");

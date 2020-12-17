@@ -10,10 +10,11 @@ public class SandBlobData : ScriptableObject
     public Color color = new Color(214, 171, 64, 255);
     public float blend = 100f;
     public int primitiveShape = 0; //0=cube, 1=sphere
-    [ShowIf("primitiveShape", 0)]
+    [ShowIf("primitiveShape", 0, 2)]
     public float round = 0;
-    //[ShowIf("primitiveShape", 1)]
-    //public float sliceY = 0;
+    [ShowIf("primitiveShape", 3)]
+    public float fat = 0;
+    
 
     private void OnValidate() {
         

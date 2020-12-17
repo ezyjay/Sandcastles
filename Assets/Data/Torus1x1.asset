@@ -16,5 +16,6 @@ MonoBehaviour:
   size: {x: 1, y: 1, z: 1}
   color: {r: 0.7490196, g: 0.6, b: 0.22745098, a: 1}
   blend: 100
-  primitiveShape: 0
+  primitiveShape: 3
   round: 0
+  fat: 21.8
