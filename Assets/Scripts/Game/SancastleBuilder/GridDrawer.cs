@@ -201,6 +201,11 @@ public class GridDrawer : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// Checks that the height value at an index corresponds to the verticals values
+    /// </summary>
+    /// <param name="index"> The index</param>
+    /// <param name="verticalIndex"> The vertical index</param>
     private void EnsureHeightAndVerticalValuesAreCoherent(Vector2Int index, int verticalIndex) {
         int newTileHeightValue = 0;
         for (int i = GetHeightAtIndex(index); i >= 0; i--) {
@@ -321,12 +326,95 @@ public class GridDrawer : MonoBehaviour
                     //If we don't want to fill diagonal neighbours check that the distance is the same as the amount to add
                     if (getDiagonalNeighbours || Vector2Int.Distance(currentIndex, centerIndex) == distanceToCheck.x || currentIndex == centerIndex) {
                         
-                        indexes.Add(currentIndex);
+                        if (IsInsideGridBounds(currentIndex))
+                            indexes.Add(currentIndex);
                     }
                 }
             }
         }
 
         return indexes;
+    }
+
+    public bool CanRemoveObjectAtVerticalIndex(Vector2Int mainIndex, int amountToAdd, int verticalIndex) {
+
+        //If there is not object at index to be remove, return false
+        if (!GetTileValue(mainIndex).HasObjectAtVerticalIndex(verticalIndex))
+            return false;
+
+        //First degree neighbours (direct neighbours)
+        Vector2Int distanceToCheckClose = Vector2Int.one * (amountToAdd - tileSize);
+        List<Vector2Int> firstNeighbours = GetNeighbourIndexes(mainIndex, distanceToCheckClose, false);
+
+        //Second degree neighbours (tiles that are separated from main index by the direct neighbours)
+        Vector2Int distanceToCheckFurther = Vector2Int.one * amountToAdd;
+        List<Vector2Int> secondNeighbours = GetNeighbourIndexes(mainIndex, distanceToCheckFurther, false);
+
+        //Position checks
+        bool isAtTop = GetHeightAtIndex(mainIndex)-1 == verticalIndex;
+        bool isOnFloor = verticalIndex == 0;
+        bool hasBlockAbove = verticalIndex + 1 < maxGridSize - 1 && GetTileValue(mainIndex).HasObjectAtVerticalIndex(verticalIndex + 1);
+        bool isSupportedByBlockBelow = verticalIndex - 1 >= 0 && GetTileValue(mainIndex).HasObjectAtVerticalIndex(verticalIndex - 1) || isOnFloor;
+
+        //Counters
+        int firstNeighbourCount = 0;
+        int validFirstNeighbourCount = 0;
+        int blockAboveSupportCount = 0;
+        int secondNeighbourCount = 0;
+
+        //Iterate through first Neighbours
+        for (int i = 0; i < firstNeighbours.Count; i++) {
+
+            if(firstNeighbours[i] != mainIndex) {
+
+                //Check if current index isn't the only thing supporting block above
+                if (hasBlockAbove) {
+                    if (GetTileValue(firstNeighbours[i]).HasObjectAtVerticalIndex(verticalIndex + 1))
+                        blockAboveSupportCount++;
+                }
+
+                //Check if there is an object in the neighbour tiles
+                if (GetTileValue(firstNeighbours[i]).HasObjectAtVerticalIndex(verticalIndex)) {
+
+                    firstNeighbourCount++;
+
+                    //Check if neighbour object is directly on the ground or that it's supported by something if it isn't
+                    if (isOnFloor || !isOnFloor && GetTileValue(firstNeighbours[i]).HasObjectAtVerticalIndex(verticalIndex - 1)) {
+                        validFirstNeighbourCount++;
+                    }
+
+                    //Remove the second neighbour from the same area as this one because we want to check the opposite side neighbours if we've found one already in order to have 2 supporting pillars
+                    secondNeighbours.Remove(mainIndex + (firstNeighbours[i] - mainIndex) *2);
+
+                    //If is supported by at least 2 neighbours and the block above is correctly supported by other blocks, it's ok to remove block at current index
+                    if (validFirstNeighbourCount >= 2 && (hasBlockAbove && blockAboveSupportCount >= 2 || !hasBlockAbove))
+                        return true;
+                }
+            }
+        }
+
+        //If block above doesn't have anything else supporting we can't remove current one
+        if (hasBlockAbove && blockAboveSupportCount < 2)
+            return false;
+
+        //Iterate through second Neighbours
+            for (int i = 0; i < secondNeighbours.Count; i++) {
+
+            //Does tile contain a block
+            if (secondNeighbours[i] != mainIndex && GetTileValue(secondNeighbours[i]).HasObjectAtVerticalIndex(verticalIndex))
+                secondNeighbourCount++;
+        }
+
+        
+        //If current index only has one neighbour and it's valid, check that the current index is supported and that there is a valid second neighbour if it has a block above it
+        if (firstNeighbourCount <= 1 && validFirstNeighbourCount >= 1 && isSupportedByBlockBelow && (hasBlockAbove && secondNeighbourCount >= 1 ||!hasBlockAbove) )
+            return true;
+
+        //If has at least 2 neighbours (firt degree or second degree) or if current block is at the top, is supported and has no neighbours then we can make a hole
+        if (validFirstNeighbourCount >= 1 && secondNeighbourCount >= 1 || firstNeighbourCount == 0 && isAtTop && isSupportedByBlockBelow)
+            return true;
+
+        //If nothing returned true yet, then we can't remove anything
+        return false;
     }
 }

@@ -18,59 +18,64 @@ public class SandcastleUI : MonoBehaviour
 
     public void CheckInput(SandBlobType sandBlobType) {
 
-        //Change blob size
-        if (Input.GetKeyDown(toggleBigBlobs)) {
-            bigBlobs = !bigBlobs;
-            switch (sandBlobType) {
-                case SandBlobType.CUBE_1x1:
-                    SandBlobChanged?.Invoke(SandBlobType.CUBE_3x1);
-                    break;
-                case SandBlobType.SPHERE_1x1:
-                    SandBlobChanged?.Invoke(SandBlobType.CYLINDER_3x1);
-                    break;
-                case SandBlobType.BLOB_1x1:
-                    SandBlobChanged?.Invoke(SandBlobType.BLOB_3x1);
-                    break;
-                case SandBlobType.BLOB_3x1:
-                    SandBlobChanged?.Invoke(SandBlobType.BLOB_1x1);
-                    break;
-                case SandBlobType.CUBE_3x1:
-                    SandBlobChanged?.Invoke(SandBlobType.CUBE_1x1);
-                    break;
-                case SandBlobType.CYLINDER_3x1:
-                    SandBlobChanged?.Invoke(SandBlobType.SPHERE_1x1);
-                    break;
-                default:
-                    break;
-            }
-        }
+        if (!removeModeActive) {
 
-        //Change blob type
-        if (bigBlobs) {
-            if (Input.GetKeyDown(buildCube)) {
-                SandBlobChanged?.Invoke(SandBlobType.CUBE_3x1);
-            } else if (Input.GetKeyDown(buildSphere)) {
-                SandBlobChanged?.Invoke(SandBlobType.CYLINDER_3x1);
-            } else if (Input.GetKeyDown(buildBlob)) {
-                SandBlobChanged?.Invoke(SandBlobType.BLOB_3x1);
+            //Change blob size
+            if (Input.GetKeyDown(toggleBigBlobs)) {
+                bigBlobs = !bigBlobs;
+                switch (sandBlobType) {
+                    case SandBlobType.CUBE_1x1:
+                        SandBlobChanged?.Invoke(SandBlobType.CUBE_3x1);
+                        break;
+                    case SandBlobType.SPHERE_1x1:
+                        SandBlobChanged?.Invoke(SandBlobType.CYLINDER_3x1);
+                        break;
+                    case SandBlobType.BLOB_1x1:
+                        SandBlobChanged?.Invoke(SandBlobType.BLOB_3x1);
+                        break;
+                    case SandBlobType.BLOB_3x1:
+                        SandBlobChanged?.Invoke(SandBlobType.BLOB_1x1);
+                        break;
+                    case SandBlobType.CUBE_3x1:
+                        SandBlobChanged?.Invoke(SandBlobType.CUBE_1x1);
+                        break;
+                    case SandBlobType.CYLINDER_3x1:
+                        SandBlobChanged?.Invoke(SandBlobType.SPHERE_1x1);
+                        break;
+                    default:
+                        break;
+                }
             }
-        } else {
-            if (Input.GetKeyDown(buildCube)) {
-                SandBlobChanged?.Invoke(SandBlobType.CUBE_1x1);
-            } else if (Input.GetKeyDown(buildSphere)) {
-                SandBlobChanged?.Invoke(SandBlobType.SPHERE_1x1);
-            } else if (Input.GetKeyDown(buildBlob)) {
-                SandBlobChanged?.Invoke(SandBlobType.BLOB_1x1);
+
+            //Change blob type
+            if (bigBlobs) {
+                if (Input.GetKeyDown(buildCube)) {
+                    SandBlobChanged?.Invoke(SandBlobType.CUBE_3x1);
+                } else if (Input.GetKeyDown(buildSphere)) {
+                    SandBlobChanged?.Invoke(SandBlobType.CYLINDER_3x1);
+                } else if (Input.GetKeyDown(buildBlob)) {
+                    SandBlobChanged?.Invoke(SandBlobType.BLOB_3x1);
+                }
+            } else {
+                if (Input.GetKeyDown(buildCube)) {
+                    SandBlobChanged?.Invoke(SandBlobType.CUBE_1x1);
+                } else if (Input.GetKeyDown(buildSphere)) {
+                    SandBlobChanged?.Invoke(SandBlobType.SPHERE_1x1);
+                } else if (Input.GetKeyDown(buildBlob)) {
+                    SandBlobChanged?.Invoke(SandBlobType.BLOB_1x1);
+                }
             }
         }
 
         //Change operation type
         if (Input.GetKeyDown(toggleRemove)) {
             removeModeActive = !removeModeActive;
-            if (removeModeActive)
+            if (removeModeActive) {
+                SandBlobChanged?.Invoke(SandBlobType.CUBE_1x1);
                 BuildModeChanged?.Invoke(OperationType.SUBTRACT);
-            else
+            } else {
                 BuildModeChanged?.Invoke(OperationType.ADD);
+            }
         }
 
         //Check other key inputs

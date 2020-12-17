@@ -397,10 +397,14 @@ MonoBehaviour:
 
     Move Right
 
-    Speed Up Camera
+    Move Down
 
     Move
-    Camera'
+    Up
+
+    Speed Up Camera
+
+    Move Camera'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1204,7 +1208,7 @@ MonoBehaviour:
   customMaterial: {fileID: 2100000, guid: 718ec1b40abb51847a7919eee6df9545, type: 2}
   forceUpdate: 0
   instanceOf: {fileID: 0}
-  needsUpdate: 0
+  needsUpdate: 1
   clayxelDetail: 87
   chunksX: 3
   chunksY: 3
@@ -1760,7 +1764,7 @@ GameObject:
   - component: {fileID: 917781363}
   - component: {fileID: 917781362}
   m_Layer: 0
-  m_Name: Panel
+  m_Name: Controls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1785,8 +1789,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -670, y: -394.2}
-  m_SizeDelta: {x: -1339.9585, y: 788.36206}
+  m_AnchoredPosition: {x: -662.5, y: -432.7}
+  m_SizeDelta: {x: -1324.9539, y: 865.25977}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &917781362
 MonoBehaviour:
@@ -2377,9 +2381,14 @@ MonoBehaviour:
 
     D
 
+    Q
+
+    E
+
     Hold Shift
 
-    Right Click + Move Mouse
+    Right Click
+    + Move Mouse
 
 '
   m_isRightToLeft: 0
@@ -2390,8 +2399,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4293352556
-  m_fontColor: {r: 0.42352942, g: 0.36078432, b: 0.90588236, a: 1}
+    rgba: 4294876066
+  m_fontColor: {r: 0.63529414, g: 0.60784316, b: 0.99607843, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2510,7 +2519,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1298080464
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2859,8 +2868,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -601.95}
-  m_SizeDelta: {x: -20, y: 356.83722}
+  m_AnchoredPosition: {x: 0, y: -638.8}
+  m_SizeDelta: {x: -20, y: 430.49396}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1610660467
 GameObject:
@@ -3422,6 +3431,7 @@ MonoBehaviour:
   sandcastleUI: {fileID: 378709077}
   currentOperationType: 0
   currentSandBlobType: 0
+  maxHoleSize: 2
 --- !u!4 &1700080183
 Transform:
   m_ObjectHideFlags: 0
@@ -3762,7 +3772,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -239.3, y: -60}
+  m_AnchoredPosition: {x: -239.2998, y: -60}
   m_SizeDelta: {x: 454.47375, y: 97.157104}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1866177221

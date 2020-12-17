@@ -25,6 +25,7 @@ public class SandcastleManager : MonoBehaviour
     public SandcastleUI sandcastleUI;
     public OperationType currentOperationType = OperationType.ADD;
     public SandBlobType currentSandBlobType = SandBlobType.CUBE_1x1;
+    public int maxHoleSize = 2;
 
     private RaycastHit hit;
     private Ray ray;
@@ -75,6 +76,8 @@ public class SandcastleManager : MonoBehaviour
         sandcastleUI.UndoLastAction += UndoLastAction;
         sandcastleUI.RedoAction += RedoAction;
         sandcastleUI.BuildModeChanged += OnBuildModeChanged;
+
+        gridDrawer.gameObject.SetActive(true);
 
         sandClayObjects.Initialize();
         sandBlobManager.Initialize(currentSandBlobType);
@@ -150,7 +153,6 @@ public class SandcastleManager : MonoBehaviour
                     gridDrawer.MoveObjectOnGrid(sandBlobManager.CurrentSandBlobPreview.transform, hit.point, true);
 
                     gridIndexSpawn = gridDrawer.GetTileIndexFromPosition(sandBlobManager.CurrentSandBlobPreview.transform.position);
-                    shapeIndexes = GetShapeGridIndexes(gridIndexSpawn);
 
                     if (sandBlobManager.CurrentTempRemoveObject != null) 
                         sandBlobManager.CurrentTempRemoveObject.transform.position = new Vector3(sandBlobManager.CurrentSandBlobPreview.transform.position.x, sandBlobManager.CurrentSandBlobPreview.transform.position.y + .5f, sandBlobManager.CurrentSandBlobPreview.transform.position.z);
@@ -160,13 +162,14 @@ public class SandcastleManager : MonoBehaviour
 
                         //Show blob preview
                         sandBlobManager.ToggleBlobPreview(true);
-                       
-                        //if (sandBlobManager.CurrentTempRemoveObject.transform.position.y + gridDrawer.tileSize / 2f < gridDrawer.GetValueAtIndex(gridIndexSpawn)) {
+
+                        //Check not leaving too many holes
+                        if (gridDrawer.CanRemoveObjectAtVerticalIndex(gridIndexSpawn, gridDrawer.tileSize * maxHoleSize, (int)sandBlobManager.CurrentTempRemoveObject.transform.position.y)) {
 
                             //Can build
                             sandBlobManager.BlobAtCorrectPosition(true);
                             canBuild = true;
-                        //}
+                        }
                     }
                 }
             }
@@ -260,10 +263,13 @@ public class SandcastleManager : MonoBehaviour
         sandClayObjects.UpdateSolids();
     }
 
-    private List<Vector2Int> GetShapeGridIndexes(Vector2Int middleGridIndex) {
+    private List<Vector2Int> GetShapeGridIndexes(Vector2Int middleGridIndex, int addToAmountToAdd = 0) {
 
         Vector2Int amountToAdd = new Vector2Int((int)sandBlobManager.CurrentSandBlob.data.size.x / 2, (int)sandBlobManager.CurrentSandBlob.data.size.z / 2);
-        
+
+        if (addToAmountToAdd != 0)
+            amountToAdd += addToAmountToAdd * Vector2Int.one;
+
         bool fillDiagonalNeighbours = true;
         if (sandBlobManager.CurrentSandBlob.data.type == SandBlobType.CYLINDER_3x1)
             fillDiagonalNeighbours = false;
