@@ -41,7 +41,7 @@ public class SandBlobData : ScriptableObject
             primitiveShape = 2;
         } 
         else if (type == SandBlobType.TORUS_1x1) {
-            primitiveShape = 2;
+            primitiveShape = 3;
         }
     }
 }
