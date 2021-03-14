@@ -77,7 +77,7 @@ public class GridDrawer : MonoBehaviour
     public void IncrementTileValueAtIndex(Vector2Int index, int maxTileValue = int.MaxValue) {
 
         int incrementedTileValue = GetHeightAtIndex(index) + tileSize;
-        if (incrementedTileValue <= maxTileValue + tileSize) {
+        if (incrementedTileValue <= maxTileValue && maxTileValue == int.MaxValue || incrementedTileValue <= maxTileValue + tileSize) {
             SetHeightAtIndex(index, incrementedTileValue);
             AddValueAtVerticalIndex(index, incrementedTileValue - 1);
             //Debug.Log("Object Add to grid at index " + gridIndex.x + ", " + gridIndex.y + ": Number of objects in tile = " + grid[gridIndex.x, gridIndex.y]);

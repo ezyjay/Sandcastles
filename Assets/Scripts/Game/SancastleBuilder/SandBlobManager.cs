@@ -2,6 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public struct SandBlob
+{
+    public SandBlobData data;
+    public GameObject previewObject;
+}
+
 public class SandBlobManager : MonoBehaviour
 {
     public Material goodPositionMat, badPositionMat;

@@ -2,12 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SandcastleUI : MonoBehaviour
 {
     public GameObject uiPanel;
-    public GameObject largerShapesText, smallerShapesText;
-    public GameObject largerShapes, smallerShapes;
+    public Button smallShapesButton;
+    public GameObject largerShapes, smallerShapes, topPieces, decorations;
     public GameObject substractModeText, buildModeText;
     public GameObject controlsPanel, showControlsText, hideControlsText;
 
@@ -16,11 +17,21 @@ public class SandcastleUI : MonoBehaviour
 
     public Action<SandBlobType> SandBlobChanged;
     public Action<OperationType> BuildModeChanged;
+    public Action<SandDecorationType> DecorationTypeChanged;
     public Action ResetBuildZone, MouseClicked, UndoLastAction, RedoAction;
 
     private bool bigBlobs = false;
     private bool removeModeActive = false;
     private bool controlsPanelActive = false;
+    private List<GameObject> allAddCategoriesUI = new List<GameObject>();
+
+    private void Awake() {
+        smallShapesButton.Select();
+        allAddCategoriesUI.Add(largerShapes);
+        allAddCategoriesUI.Add(smallerShapes);
+        allAddCategoriesUI.Add(topPieces);
+        allAddCategoriesUI.Add(decorations);
+    }
 
     public void CheckInput(SandBlobType sandBlobType) {
 
@@ -29,36 +40,17 @@ public class SandcastleUI : MonoBehaviour
             //Change blob size
             if (Input.GetKeyDown(toggleBigBlobs)) {
                 bigBlobs = !bigBlobs;
-                switch (sandBlobType) {
-                    case SandBlobType.CUBE_1x1:
-                        SandBlobChanged?.Invoke(SandBlobType.CUBE_3x1);
-                        break;
-                    case SandBlobType.SPHERE_1x1:
-                        SandBlobChanged?.Invoke(SandBlobType.CYLINDER_3x1);
-                        break;
-                    case SandBlobType.BLOB_1x1:
-                        SandBlobChanged?.Invoke(SandBlobType.BLOB_3x1);
-                        break;
-                    case SandBlobType.BLOB_3x1:
-                        SandBlobChanged?.Invoke(SandBlobType.BLOB_1x1);
-                        break;
-                    case SandBlobType.CUBE_3x1:
-                        SandBlobChanged?.Invoke(SandBlobType.CUBE_1x1);
-                        break;
-                    case SandBlobType.CYLINDER_3x1:
-                        SandBlobChanged?.Invoke(SandBlobType.SPHERE_1x1);
-                        break;
-                    default:
-                        break;
+                BlobSizeChanged(sandBlobType);
+                ToggleAllAddCategoryUIs(false);
+                if (bigBlobs) {
+                    largerShapes.SetActive(true);
+                } else {
+                    smallerShapes.SetActive(true);
                 }
             }
 
             //Change blob type
             if (bigBlobs) {
-                largerShapesText.SetActive(false);
-                smallerShapesText.SetActive(true);
-                largerShapes.SetActive(true);
-                smallerShapes.SetActive(false);
 
                 if (Input.GetKeyDown(buildCube)) {
                     SandBlobChanged?.Invoke(SandBlobType.CUBE_3x1);
@@ -68,10 +60,6 @@ public class SandcastleUI : MonoBehaviour
                     SandBlobChanged?.Invoke(SandBlobType.BLOB_3x1);
                 }
             } else {
-                largerShapesText.SetActive(true);
-                smallerShapesText.SetActive(false);
-                largerShapes.SetActive(false);
-                smallerShapes.SetActive(true);
 
                 if (Input.GetKeyDown(buildCube)) {
                     SandBlobChanged?.Invoke(SandBlobType.CUBE_1x1);
@@ -128,11 +116,53 @@ public class SandcastleUI : MonoBehaviour
             MouseClicked?.Invoke();
     }
 
-    public void ChangeShapeSize() {
-        bigBlobs = !bigBlobs;
+    private void BlobSizeChanged(SandBlobType sandBlobType) {
+        switch (sandBlobType) {
+            case SandBlobType.CUBE_1x1:
+                SandBlobChanged?.Invoke(SandBlobType.CUBE_3x1);
+                break;
+            case SandBlobType.SPHERE_1x1:
+                SandBlobChanged?.Invoke(SandBlobType.CYLINDER_3x1);
+                break;
+            case SandBlobType.BLOB_1x1:
+                SandBlobChanged?.Invoke(SandBlobType.BLOB_3x1);
+                break;
+            case SandBlobType.BLOB_3x1:
+                SandBlobChanged?.Invoke(SandBlobType.BLOB_1x1);
+                break;
+            case SandBlobType.CUBE_3x1:
+                SandBlobChanged?.Invoke(SandBlobType.CUBE_1x1);
+                break;
+            case SandBlobType.CYLINDER_3x1:
+                SandBlobChanged?.Invoke(SandBlobType.SPHERE_1x1);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void ShowTopPieces() {
+        ToggleAllAddCategoryUIs(false);
+        topPieces.SetActive(true);
+    }
+    public void ShowDecorationsPieces() {
+        ToggleAllAddCategoryUIs(false);
+        decorations.SetActive(true);
+    }
+
+    public void ChangeShapeSize(bool changetoBigBlobs) {
+        bigBlobs = changetoBigBlobs;
         if (removeModeActive) {
             removeModeActive = false;
             BuildModeChanged?.Invoke(OperationType.ADD);
+        }
+
+        ToggleAllAddCategoryUIs(false);
+        if (bigBlobs) {
+            largerShapes.SetActive(true);
+        } 
+        else {
+            smallerShapes.SetActive(true);
         }
     }
 
@@ -152,6 +182,10 @@ public class SandcastleUI : MonoBehaviour
         SandBlobChanged?.Invoke(sandBlob.sandBlobType);
     }
 
+    public void ChangeDecorationType(DecorationTypeUI decorationTypeUI) {
+        DecorationTypeChanged?.Invoke(decorationTypeUI.decoration);
+    }
+
     public void ChangeMode() {
         removeModeActive = !removeModeActive; 
         if (removeModeActive) {
@@ -168,5 +202,11 @@ public class SandcastleUI : MonoBehaviour
 
     private void ToggleUIPanel(bool on) {
         uiPanel.SetActive(on);
+    }
+
+    private void ToggleAllAddCategoryUIs(bool on) {
+        foreach (GameObject addCategoryUI in allAddCategoriesUI) {
+            addCategoryUI.SetActive(on);
+        }
     }
 }

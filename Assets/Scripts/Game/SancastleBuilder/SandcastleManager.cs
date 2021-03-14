@@ -3,17 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public struct SandBlob
-{
-    public SandBlobData data;
-    public GameObject previewObject;
-}
-
-[System.Serializable]
 public enum OperationType
 {
     ADD = 0,
     SUBTRACT = 1,
+    DECORATE = 2,
 }
 
 public class SandcastleManager : MonoBehaviour
@@ -21,10 +15,13 @@ public class SandcastleManager : MonoBehaviour
     public bool isInBuildMode = false;
     public GridDrawer gridDrawer;
     public SandBlobManager sandBlobManager;
+    public DecorationManager decorationManager;
     public SandClayObjects sandClayObjects;
     public SandcastleUI sandcastleUI;
     public OperationType currentOperationType = OperationType.ADD;
     public SandBlobType currentSandBlobType = SandBlobType.CUBE_1x1;
+    [ShowIf("currentOperationType", OperationType.DECORATE)]
+    public SandDecorationType currentDecorationType = SandDecorationType.FLAG;
     public int maxHoleSize = 2;
 
     private RaycastHit hit;
@@ -38,6 +35,7 @@ public class SandcastleManager : MonoBehaviour
     public void ResetBuildZone() {
         sandClayObjects.DestroyAllSolids();
         gridDrawer.ClearGrid();
+        decorationManager.ClearAllDecorations();
     }
 
     private void Awake() {
@@ -76,6 +74,7 @@ public class SandcastleManager : MonoBehaviour
         sandcastleUI.UndoLastAction += UndoLastAction;
         sandcastleUI.RedoAction += RedoAction;
         sandcastleUI.BuildModeChanged += OnBuildModeChanged;
+        sandcastleUI.DecorationTypeChanged += OnDecorationTypeChanged;
 
         gridDrawer.gameObject.SetActive(true);
 
@@ -90,6 +89,7 @@ public class SandcastleManager : MonoBehaviour
         sandcastleUI.UndoLastAction -= UndoLastAction;
         sandcastleUI.RedoAction -= RedoAction;
         sandcastleUI.BuildModeChanged -= OnBuildModeChanged;
+        sandcastleUI.DecorationTypeChanged -= OnDecorationTypeChanged;
     }
 
     private void Update()
@@ -154,7 +154,7 @@ public class SandcastleManager : MonoBehaviour
 
                     gridIndexSpawn = gridDrawer.GetTileIndexFromPosition(sandBlobManager.CurrentSandBlobPreview.transform.position);
 
-                    if (sandBlobManager.CurrentTempRemoveObject != null) 
+                    if (sandBlobManager.CurrentTempRemoveObject != null)
                         sandBlobManager.CurrentTempRemoveObject.transform.position = new Vector3(sandBlobManager.CurrentSandBlobPreview.transform.position.x, sandBlobManager.CurrentSandBlobPreview.transform.position.y + .5f, sandBlobManager.CurrentSandBlobPreview.transform.position.z);
 
                     //Check if it's inside grid bounds and there is an object at index
@@ -172,6 +172,16 @@ public class SandcastleManager : MonoBehaviour
                         }
                     }
                 }
+
+                //DECORATE
+                else if (currentOperationType == OperationType.DECORATE) {
+
+                    if (decorationManager.CurrentDecoration != null) {
+                        decorationManager.CurrentDecoration.decorationObject.transform.position = hit.point;
+                        decorationManager.CurrentDecoration.decorationObject.transform.rotation = Quaternion.FromToRotation(transform.up, hit.normal);
+                        canBuild = true;
+                    }
+                }
             }
         }
     }
@@ -185,7 +195,17 @@ public class SandcastleManager : MonoBehaviour
 
     private void OnCurrentSandBlobChanged(SandBlobType sandBlobType) {
         currentSandBlobType = sandBlobManager.ChangeBlobType(sandBlobType);
+        if (currentOperationType == OperationType.DECORATE) {
+            OnBuildModeChanged(OperationType.ADD);
+        }
     }
+
+    private void OnDecorationTypeChanged(SandDecorationType decorationType) {
+        OnBuildModeChanged(OperationType.DECORATE);
+        currentDecorationType = decorationType;
+        decorationManager.CreateDecorationObject(decorationType);
+    }
+
 
     private void RedoAction() {
         Vector3 addedObjectPosition = sandClayObjects.Redo(out bool lastRemovedObjectWasSubstract);
@@ -226,6 +246,10 @@ public class SandcastleManager : MonoBehaviour
             if (sandBlobManager.CurrentTempRemoveObject != null)
                 Destroy(sandBlobManager.CurrentTempRemoveObject);
         }
+        else if (currentOperationType == OperationType.DECORATE) {
+            if (sandBlobManager.CurrentTempRemoveObject != null)
+                Destroy(sandBlobManager.CurrentTempRemoveObject);
+        }
     }
 
     private void AddSandBlob() {
@@ -240,6 +264,8 @@ public class SandcastleManager : MonoBehaviour
 
             //Updade grid and other clay objects
             gridDrawer.IncrementTileValueIndexes(shapeIndexes, gridDrawer.GetHeightAtIndex(gridIndexSpawn));
+            if (currentSandBlobType == SandBlobType.SPHERE_3x3)
+                gridDrawer.IncrementTileValueAtIndex(gridIndexSpawn);
 
             //DEBUG
             ShowDebugInfo("ADD OBJECT", gridIndexSpawn);
@@ -257,6 +283,12 @@ public class SandcastleManager : MonoBehaviour
 
             //DEBUG
             ShowDebugInfo("SUBSTRACT OBJECT", gridIndexSpawn);
+        }
+
+        //DECORATE
+        else if (currentOperationType == OperationType.DECORATE) {
+
+            decorationManager.CreateDecorationObject(currentDecorationType);
         }
 
         //Update solids

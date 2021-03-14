@@ -22,16 +22,18 @@ public class SandClayObjects : MonoBehaviour
 
         clayObject.transform.localScale = data.size;
         clayObject.color = data.color;
+        clayObject.transform.rotation = data.rotation;
 
         clayObject.blend = data.blend / 100;
         if (operationType == OperationType.SUBTRACT)
             clayObject.blend *= -1;
 
         //Cube or cylinder
-        if (data.primitiveShape == 0 || data.primitiveShape == 2)
-            clayObject.attrs = new Vector4(data.round / 100, clayObject.attrs.y, clayObject.attrs.z, clayObject.attrs.w); 
-        //Torus
-        else if (data.primitiveShape == 3)
+        if (data.primitiveShape == 0 || data.primitiveShape == 2) {
+            float zValue = data.primitiveShape == 2 ? data.cone / 100 : clayObject.attrs.z;
+            clayObject.attrs = new Vector4(data.round / 100, clayObject.attrs.y, zValue, clayObject.attrs.w);
+            //Torus
+        } else if (data.primitiveShape == 3)
             clayObject.attrs = new Vector4(data.fat / 100, clayObject.attrs.y, clayObject.attrs.z, clayObject.attrs.w);
 
 
