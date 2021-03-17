@@ -38,14 +38,34 @@ public class DecorationManager : MonoBehaviour
     private Decoration currentDecoration;
     public Decoration CurrentDecoration { get => currentDecoration; set => currentDecoration = value; }
 
-    public void CreateDecorationObject(SandDecorationType decorationType) {
+    private List<GameObject> allBuiltDecorations = new List<GameObject>();
+    private List<GameObject> undoneDecorations = new List<GameObject>();
 
+    public void CreateDecorationObject(SandDecorationType decorationType, bool destroyPreviousObject = false, bool commitCurrentObject = false) {
+
+        // Destroy previous decoration object if there was one
+        if (destroyPreviousObject)
+            DestroyCurrentDecoration();
+
+        //Add object to list of built decorations
+        if (commitCurrentObject && currentDecoration != null && currentDecoration.decorationObject != null)
+            allBuiltDecorations.Add(currentDecoration.decorationObject);
+
+        // Create new object
         GameObject template = possibleDecorations.Find(p => p.decorationType == decorationType).decorationObject;
         if (template != null) {
             GameObject instanciatedDecoration = Instantiate(template, decorationsParent);
             currentDecoration = new Decoration(decorationType, instanciatedDecoration);
         }
     }
+
+    public void DestroyCurrentDecoration() {
+        if (currentDecoration != null && currentDecoration.decorationObject != null) {
+            Destroy(currentDecoration.decorationObject);
+            currentDecoration.decorationObject = null;
+        }
+    }
+
 
     public void ClearAllDecorations() {
 

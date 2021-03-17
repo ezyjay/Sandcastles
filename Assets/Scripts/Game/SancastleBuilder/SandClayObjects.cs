@@ -18,7 +18,7 @@ public class SandClayObjects : MonoBehaviour
         baseObject = clayContainer.GetComponentInChildren<ClayObject>();
     }
 
-    private void SetClayObjectParameters(ClayObject clayObject, SandBlobData data, Vector3 position, OperationType operationType = OperationType.ADD) {
+    private void SetClayObjectParameters(ClayObject clayObject, SandBlobData data, Vector3 position, Quaternion rotation, OperationType operationType = OperationType.ADD) {
 
         clayObject.transform.localScale = data.size;
         clayObject.color = data.color;
@@ -29,14 +29,14 @@ public class SandClayObjects : MonoBehaviour
 
         //Cube or cylinder
         if (data.primitiveShape == 0 || data.primitiveShape == 2) {
-            clayObject.transform.rotation = data.rotation;
             float zValue = data.primitiveShape == 2 ? data.cone / 100 : clayObject.attrs.z;
             clayObject.attrs = new Vector4(data.round / 100, clayObject.attrs.y, zValue, clayObject.attrs.w);
             //Torus
         } else if (data.primitiveShape == 3)
             clayObject.attrs = new Vector4(data.fat / 100, clayObject.attrs.y, clayObject.attrs.z, clayObject.attrs.w);
 
-
+        clayObject.transform.rotation = data.rotation;
+        clayObject.transform.Rotate(rotation.eulerAngles);
         clayObject.setPrimitiveType(data.primitiveShape);
         clayObject.transform.position = new Vector3(position.x, position.y + .4f, position.z); ;
     }
@@ -62,10 +62,10 @@ public class SandClayObjects : MonoBehaviour
         baseObject.enabled = false;
     }
 
-    public Transform AddClayObject(SandBlobData data, Vector3 spawnPosition, OperationType operationType = OperationType.ADD, bool temporaryAdd = false) {
+    public Transform AddClayObject(SandBlobData data, Vector3 spawnPosition, Quaternion rotation, OperationType operationType = OperationType.ADD, bool temporaryAdd = false) {
         
         ClayObject clayObject = clayContainer.addClayObject();
-        SetClayObjectParameters(clayObject, data, spawnPosition, operationType);
+        SetClayObjectParameters(clayObject, data, spawnPosition, rotation, operationType);
 
         if (!temporaryAdd) 
             CommitClayObject(clayObject);
