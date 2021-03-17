@@ -33,12 +33,16 @@ public class SandcastleBuildManager : MonoBehaviour
     private Vector3 spawnPosition = Vector3.zero;
     private Vector2Int gridIndexSpawn = Vector2Int.zero;
     private List<Vector2Int> shapeIndexes = new List<Vector2Int>();
+    private List<OperationType> allDoneOperations = new List<OperationType>();
+    private List<OperationType> undoneOperations = new List<OperationType>();
 
     [EditorButton]
     public void ResetBuildZone() {
         sandClayObjects.DestroyAllSolids();
         gridDrawer.ClearGrid();
         decorationManager.ClearAllDecorations();
+        allDoneOperations.Clear();
+        undoneOperations.Clear();
     }
 
     private void Awake() {
@@ -156,13 +160,75 @@ public class SandcastleBuildManager : MonoBehaviour
                 //DECORATE
                 else if (currentOperationType == OperationType.DECORATE) {
 
-                    if (decorationManager.CurrentDecoration != null) {
+                    if (decorationManager.CurrentDecoration != null && decorationManager.CurrentDecoration.decorationObject != null) {
                         decorationManager.CurrentDecoration.decorationObject.transform.position = hit.point; 
                         Quaternion newRotation = Quaternion.FromToRotation(decorationManager.CurrentDecoration.decorationObject.transform.up, hit.normal);
                         decorationManager.CurrentDecoration.decorationObject.transform.rotation = newRotation * decorationManager.CurrentDecoration.decorationObject.transform.rotation;
                         canBuild = true;
                     }
                 }
+            }
+        }
+    }
+
+    public void UndoLastAction() {
+
+        if (allDoneOperations.Count > 0) {
+            OperationType lastOperation = allDoneOperations[allDoneOperations.Count - 1];
+            undoneOperations.Add(lastOperation);
+            if (allDoneOperations.Count > 0)
+                allDoneOperations.RemoveAt(allDoneOperations.Count - 1);
+            else
+                allDoneOperations.Clear();
+
+            if (lastOperation == OperationType.ADD || lastOperation == OperationType.SUBTRACT) {
+                Vector3 removedObjectPosition = sandClayObjects.Undo(out bool lastObjectWasSubstract);
+                if (removedObjectPosition != Vector3.zero) {
+                    Vector2Int removedObjectGridIndex = gridDrawer.GetTileIndexFromPosition(removedObjectPosition);
+                    List<Vector2Int> removedObjectShapeIndexes = GetShapeGridIndexes(removedObjectGridIndex);
+                    if (lastObjectWasSubstract)
+                        gridDrawer.AddValueAtVerticalIndexes(removedObjectShapeIndexes, (int)removedObjectPosition.y);
+                    else
+                        gridDrawer.RemoveValueAtVerticalIndexes(removedObjectShapeIndexes, (int)removedObjectPosition.y);
+
+                    //DEBUG
+                    ShowDebugInfo("UNDO", removedObjectGridIndex);
+                }
+            } 
+
+            else if (lastOperation == OperationType.DECORATE) {
+                decorationManager.UndoLastAddedDecoration();
+            }
+        }
+    }
+
+    public void RedoAction() {
+
+        if (undoneOperations.Count > 0) {
+            OperationType lastOperation = undoneOperations[undoneOperations.Count - 1];
+            if (undoneOperations.Count > 0)
+                undoneOperations.RemoveAt(undoneOperations.Count - 1);
+            else
+                undoneOperations.Clear();
+            allDoneOperations.Add(lastOperation);
+
+            if (lastOperation == OperationType.ADD || lastOperation == OperationType.SUBTRACT) {
+                Vector3 addedObjectPosition = sandClayObjects.Redo(out bool lastRemovedObjectWasSubstract);
+                if (addedObjectPosition != Vector3.zero) {
+                    Vector2Int addedObjectGridIndex = gridDrawer.GetTileIndexFromPosition(addedObjectPosition);
+                    List<Vector2Int> addedObjectShapeIndexes = GetShapeGridIndexes(addedObjectGridIndex);
+                    if (lastRemovedObjectWasSubstract)
+                        gridDrawer.RemoveValueAtVerticalIndexes(addedObjectShapeIndexes, (int)addedObjectPosition.y);
+                    else
+                        gridDrawer.AddValueAtVerticalIndexes(addedObjectShapeIndexes, (int)addedObjectPosition.y);
+
+                    //DEBUG
+                    ShowDebugInfo("REDO", addedObjectGridIndex);
+                }
+            } 
+            
+            else if (lastOperation == OperationType.DECORATE) {
+                decorationManager.RedoLastAction();
             }
         }
     }
@@ -199,35 +265,36 @@ public class SandcastleBuildManager : MonoBehaviour
     }
 
 
-    public void RedoAction() {
-        Vector3 addedObjectPosition = sandClayObjects.Redo(out bool lastRemovedObjectWasSubstract);
-        if (addedObjectPosition != Vector3.zero) {
-            Vector2Int addedObjectGridIndex = gridDrawer.GetTileIndexFromPosition(addedObjectPosition);
-            List<Vector2Int> addedObjectShapeIndexes = GetShapeGridIndexes(addedObjectGridIndex);
-            if (lastRemovedObjectWasSubstract)
-                gridDrawer.RemoveValueAtVerticalIndexes(addedObjectShapeIndexes, (int)addedObjectPosition.y);
-            else
-                gridDrawer.AddValueAtVerticalIndexes(addedObjectShapeIndexes, (int)addedObjectPosition.y);
+    //public void RedoAction() {
 
-            //DEBUG
-            ShowDebugInfo("REDO", addedObjectGridIndex);
-        }
-    }
+    //    Vector3 addedObjectPosition = sandClayObjects.Redo(out bool lastRemovedObjectWasSubstract);
+    //    if (addedObjectPosition != Vector3.zero) {
+    //        Vector2Int addedObjectGridIndex = gridDrawer.GetTileIndexFromPosition(addedObjectPosition);
+    //        List<Vector2Int> addedObjectShapeIndexes = GetShapeGridIndexes(addedObjectGridIndex);
+    //        if (lastRemovedObjectWasSubstract)
+    //            gridDrawer.RemoveValueAtVerticalIndexes(addedObjectShapeIndexes, (int)addedObjectPosition.y);
+    //        else
+    //            gridDrawer.AddValueAtVerticalIndexes(addedObjectShapeIndexes, (int)addedObjectPosition.y);
 
-    public void UndoLastAction() {
-        Vector3 removedObjectPosition = sandClayObjects.Undo(out bool lastObjectWasSubstract);
-        if (removedObjectPosition != Vector3.zero) {
-            Vector2Int removedObjectGridIndex = gridDrawer.GetTileIndexFromPosition(removedObjectPosition);
-            List<Vector2Int> removedObjectShapeIndexes = GetShapeGridIndexes(removedObjectGridIndex);
-            if (lastObjectWasSubstract)
-                gridDrawer.AddValueAtVerticalIndexes(removedObjectShapeIndexes, (int)removedObjectPosition.y);
-            else
-                gridDrawer.RemoveValueAtVerticalIndexes(removedObjectShapeIndexes, (int)removedObjectPosition.y);
+    //        //DEBUG
+    //        ShowDebugInfo("REDO", addedObjectGridIndex);
+    //    }
+    //}
 
-            //DEBUG
-            ShowDebugInfo("UNDO", removedObjectGridIndex);
-        }
-    }
+    //public void UndoLastAction() {
+    //    Vector3 removedObjectPosition = sandClayObjects.Undo(out bool lastObjectWasSubstract);
+    //    if (removedObjectPosition != Vector3.zero) {
+    //        Vector2Int removedObjectGridIndex = gridDrawer.GetTileIndexFromPosition(removedObjectPosition);
+    //        List<Vector2Int> removedObjectShapeIndexes = GetShapeGridIndexes(removedObjectGridIndex);
+    //        if (lastObjectWasSubstract)
+    //            gridDrawer.AddValueAtVerticalIndexes(removedObjectShapeIndexes, (int)removedObjectPosition.y);
+    //        else
+    //            gridDrawer.RemoveValueAtVerticalIndexes(removedObjectShapeIndexes, (int)removedObjectPosition.y);
+
+    //        //DEBUG
+    //        ShowDebugInfo("UNDO", removedObjectGridIndex);
+    //    }
+    //}
 
     public void ChangeBuildMode(OperationType newOperationType) {
         currentOperationType = newOperationType;
@@ -283,6 +350,9 @@ public class SandcastleBuildManager : MonoBehaviour
 
             decorationManager.CreateDecorationObject(currentDecorationType, commitCurrentObject: true);
         }
+
+        allDoneOperations.Add(currentOperationType);
+        undoneOperations.Clear();
 
         //Update solids
         sandClayObjects.UpdateSolids();

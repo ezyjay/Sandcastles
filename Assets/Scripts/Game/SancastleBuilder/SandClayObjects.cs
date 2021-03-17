@@ -104,6 +104,7 @@ public class SandClayObjects : MonoBehaviour
             i++;
         }
         allClayObjects.Clear();
+        DeleteObjectsInUndoneList();
     }
 
 
@@ -114,7 +115,10 @@ public class SandClayObjects : MonoBehaviour
         if (allClayObjects.Count > 0) {
             ClayObject lastClayObject = allClayObjects[allClayObjects.Count - 1];
             undoneClayObjects.Add(lastClayObject);
-            allClayObjects.Remove(lastClayObject);
+            if (allClayObjects.Count > 0)
+                allClayObjects.RemoveAt(allClayObjects.Count - 1);
+            else
+                allClayObjects.Clear();
             lastClayObject.enabled = true;
             lastClayObject.transform.hasChanged = true;
             lastClayObject.gameObject.SetActive(false);
@@ -138,7 +142,10 @@ public class SandClayObjects : MonoBehaviour
         if (undoneClayObjects.Count > 0) {
 
             ClayObject lastRemovedClayObject = undoneClayObjects[undoneClayObjects.Count - 1];
-            undoneClayObjects.Remove(lastRemovedClayObject);
+            if (undoneClayObjects.Count > 0)
+                undoneClayObjects.RemoveAt(undoneClayObjects.Count - 1);
+            else
+                undoneClayObjects.Clear();
             allClayObjects.Add(lastRemovedClayObject);
             lastRemovedClayObject.enabled = true;
             lastRemovedClayObject.transform.hasChanged = true;

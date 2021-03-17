@@ -48,8 +48,10 @@ public class DecorationManager : MonoBehaviour
             DestroyCurrentDecoration();
 
         //Add object to list of built decorations
-        if (commitCurrentObject && currentDecoration != null && currentDecoration.decorationObject != null)
+        if (commitCurrentObject && currentDecoration != null && currentDecoration.decorationObject != null) { 
             allBuiltDecorations.Add(currentDecoration.decorationObject);
+            DeleteObjectsInUndoneList();
+        }
 
         // Create new object
         GameObject template = possibleDecorations.Find(p => p.decorationType == decorationType).decorationObject;
@@ -66,11 +68,48 @@ public class DecorationManager : MonoBehaviour
         }
     }
 
+    public void UndoLastAddedDecoration() {
+
+        if (allBuiltDecorations.Count > 0) {
+            GameObject lastDecoration = allBuiltDecorations[allBuiltDecorations.Count - 1];
+            undoneDecorations.Add(lastDecoration); 
+            if (allBuiltDecorations.Count > 0)
+                allBuiltDecorations.RemoveAt(allBuiltDecorations.Count - 1);
+            else
+                allBuiltDecorations.Clear();
+            lastDecoration.gameObject.SetActive(false);
+        }
+    }
+
+    public void RedoLastAction() {
+
+        if (undoneDecorations.Count > 0) {
+            GameObject lastRemovedDecoration = undoneDecorations[undoneDecorations.Count - 1];
+            if (undoneDecorations.Count > 0)
+                undoneDecorations.RemoveAt(undoneDecorations.Count - 1);
+            else
+                undoneDecorations.Clear();
+            allBuiltDecorations.Add(lastRemovedDecoration);
+            lastRemovedDecoration.gameObject.SetActive(true);
+        }
+    }
+
+    private void DeleteObjectsInUndoneList() {
+        if (undoneDecorations.Count > 0) {
+            foreach (GameObject go in undoneDecorations) {
+                if (go != null)
+                    Destroy(go);
+            }
+            undoneDecorations.Clear();
+        }
+    }
 
     public void ClearAllDecorations() {
 
         foreach (Transform decorationTransform in decorationsParent) {
             Destroy(decorationTransform.gameObject);
         }
+        allBuiltDecorations.Clear();
+        DeleteObjectsInUndoneList();
     }
 }
