@@ -9,6 +9,7 @@ public class SandcastleUI : MonoBehaviour
     [Header("Panels")]
     public GameObject uiPanel;
     public GameObject largerShapes, smallerShapes, topPieces, decorations;
+    public GameObject disabledShapeSelection;
 
     [Header("Button")]
     public Button smallShapesButton;
@@ -85,12 +86,14 @@ public class SandcastleUI : MonoBehaviour
         removeModeActive = !removeModeActive; 
 
         if (removeModeActive) {
+            disabledShapeSelection.SetActive(true);
             substractModeText.SetActive(false);
             buildModeText.SetActive(true);
             ChangeSandBlobTypeButtonPressed?.Invoke(SandBlobType.CUBE_1x1);
             ChangeBuildModeButtonPressed?.Invoke(OperationType.SUBTRACT);
         } 
         else {
+            disabledShapeSelection.SetActive(false);
             substractModeText.SetActive(true);
             buildModeText.SetActive(false);
             ChangeBuildModeButtonPressed?.Invoke(OperationType.ADD);

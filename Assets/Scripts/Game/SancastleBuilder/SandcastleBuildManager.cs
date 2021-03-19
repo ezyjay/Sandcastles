@@ -30,6 +30,7 @@ public class SandcastleBuildManager : MonoBehaviour
     private RaycastHit hit;
     private Ray ray;
     private bool canBuild = false;
+    private bool isFillingHole = false;
     private Vector3 spawnPosition = Vector3.zero;
     private Vector2Int gridIndexSpawn = Vector2Int.zero;
     private List<Vector2Int> shapeIndexes = new List<Vector2Int>();
@@ -84,6 +85,7 @@ public class SandcastleBuildManager : MonoBehaviour
 
             //Reset blob preview and force show solids
             canBuild = false;
+            isFillingHole = false;
             sandClayObjects.ToggleSolids(true);
             sandBlobManager.BlobAtCorrectPosition(false);
             sandBlobManager.ToggleBlobPreview(false);
@@ -111,10 +113,22 @@ public class SandcastleBuildManager : MonoBehaviour
                         shapeIndexes = GetShapeGridIndexes(gridIndexSpawn);
 
                         //Check if current grid position already has something in it to set the Y value of blob preview
+                        int hitPointHeight = (int)(hit.point.y + .2f);
                         if (gridDrawer.HasObjectAtIndex(gridIndexSpawn)) {
-                            float newYPosition = spawnPosition.y + gridDrawer.GetHeightAtIndex(gridIndexSpawn) * gridDrawer.tileSize;
+
+                            //If nothing at this height and it's lower than total height we are filling a hole
+                            if (gridDrawer.GetVerticalValueAtIndex(gridIndexSpawn, hitPointHeight) == 0 && hitPointHeight < gridDrawer.GetHeightAtIndex(gridIndexSpawn)) {
+
+                                isFillingHole = true;
+                            }
+                            //Place on top of column of objects
+                            else {
+                                hitPointHeight = gridDrawer.GetHeightAtIndex(gridIndexSpawn);
+                            }
+                            float newYPosition = spawnPosition.y + hitPointHeight * gridDrawer.tileSize;
                             spawnPosition = new Vector3(spawnPosition.x, newYPosition, spawnPosition.z);
                             sandBlobManager.SetBlobPreviewYPosition(newYPosition - .2f * gridDrawer.tileSize);
+
                         } else {
                             sandBlobManager.SetBlobPreviewYPosition(transform.position.y);
                         }
@@ -161,7 +175,8 @@ public class SandcastleBuildManager : MonoBehaviour
                 else if (currentOperationType == OperationType.DECORATE) {
 
                     if (decorationManager.CurrentDecoration != null && decorationManager.CurrentDecoration.decorationObject != null) {
-                        decorationManager.CurrentDecoration.decorationObject.transform.position = hit.point; 
+
+                        decorationManager.CurrentDecoration.decorationObject.transform.position = hit.point;
                         Quaternion newRotation = Quaternion.FromToRotation(decorationManager.CurrentDecoration.decorationObject.transform.up, hit.normal);
                         decorationManager.CurrentDecoration.decorationObject.transform.rotation = newRotation * decorationManager.CurrentDecoration.decorationObject.transform.rotation;
                         canBuild = true;
@@ -264,38 +279,6 @@ public class SandcastleBuildManager : MonoBehaviour
         decorationManager.CreateDecorationObject(decorationType, destroyPreviousObject: true);
     }
 
-
-    //public void RedoAction() {
-
-    //    Vector3 addedObjectPosition = sandClayObjects.Redo(out bool lastRemovedObjectWasSubstract);
-    //    if (addedObjectPosition != Vector3.zero) {
-    //        Vector2Int addedObjectGridIndex = gridDrawer.GetTileIndexFromPosition(addedObjectPosition);
-    //        List<Vector2Int> addedObjectShapeIndexes = GetShapeGridIndexes(addedObjectGridIndex);
-    //        if (lastRemovedObjectWasSubstract)
-    //            gridDrawer.RemoveValueAtVerticalIndexes(addedObjectShapeIndexes, (int)addedObjectPosition.y);
-    //        else
-    //            gridDrawer.AddValueAtVerticalIndexes(addedObjectShapeIndexes, (int)addedObjectPosition.y);
-
-    //        //DEBUG
-    //        ShowDebugInfo("REDO", addedObjectGridIndex);
-    //    }
-    //}
-
-    //public void UndoLastAction() {
-    //    Vector3 removedObjectPosition = sandClayObjects.Undo(out bool lastObjectWasSubstract);
-    //    if (removedObjectPosition != Vector3.zero) {
-    //        Vector2Int removedObjectGridIndex = gridDrawer.GetTileIndexFromPosition(removedObjectPosition);
-    //        List<Vector2Int> removedObjectShapeIndexes = GetShapeGridIndexes(removedObjectGridIndex);
-    //        if (lastObjectWasSubstract)
-    //            gridDrawer.AddValueAtVerticalIndexes(removedObjectShapeIndexes, (int)removedObjectPosition.y);
-    //        else
-    //            gridDrawer.RemoveValueAtVerticalIndexes(removedObjectShapeIndexes, (int)removedObjectPosition.y);
-
-    //        //DEBUG
-    //        ShowDebugInfo("UNDO", removedObjectGridIndex);
-    //    }
-    //}
-
     public void ChangeBuildMode(OperationType newOperationType) {
         currentOperationType = newOperationType;
         if (currentOperationType == OperationType.SUBTRACT) {
@@ -323,7 +306,11 @@ public class SandcastleBuildManager : MonoBehaviour
             sandBlobManager.EnableSandBlobCollider(clayObject);
 
             //Updade grid and other clay objects
-            gridDrawer.IncrementTileValueIndexes(shapeIndexes, gridDrawer.GetHeightAtIndex(gridIndexSpawn));
+            if (isFillingHole)
+                gridDrawer.AddValueAtVerticalIndexes(shapeIndexes, (int)sandBlobManager.CurrentSandBlobPreview.transform.position.y);
+            else
+                gridDrawer.IncrementTileValueIndexes(shapeIndexes, gridDrawer.GetHeightAtIndex(gridIndexSpawn));
+            
             if (currentSandBlobType == SandBlobType.SPHERE_3x3)
                 gridDrawer.IncrementTileValueAtIndex(gridIndexSpawn);
 
