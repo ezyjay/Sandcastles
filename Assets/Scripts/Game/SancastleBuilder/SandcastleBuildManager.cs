@@ -13,6 +13,7 @@ public enum OperationType
 public class SandcastleBuildManager : MonoBehaviour
 {
     [Header("Parameters")]
+    public bool showDebugInfo = false;
     public bool isInBuildMode = false;
     public bool enforceRulesForPositioning = false;
     public OperationType currentOperationType = OperationType.ADD;
@@ -26,7 +27,8 @@ public class SandcastleBuildManager : MonoBehaviour
     public SandBlobManager sandBlobManager;
     public DecorationManager decorationManager;
     public SandClayObjects sandClayObjects;
-    
+    public Transform extraPreviewsParent;
+
     private RaycastHit hit;
     private Ray ray;
     private bool canBuild = false;
@@ -36,6 +38,10 @@ public class SandcastleBuildManager : MonoBehaviour
     private List<Vector2Int> shapeIndexes = new List<Vector2Int>();
     private List<OperationType> allDoneOperations = new List<OperationType>();
     private List<OperationType> undoneOperations = new List<OperationType>();
+    private List<GameObject> extraPreviewObjects = new List<GameObject>();
+    private List<Vector2Int> extraPreviewObjectGridIndexes = new List<Vector2Int>();
+    private Vector2Int previousDraggedMouseIndex;
+    private Vector2 previousDragDirection;
 
     [EditorButton]
     public void ResetBuildZone() {
@@ -52,6 +58,10 @@ public class SandcastleBuildManager : MonoBehaviour
 
         if (sandClayObjects == null)
             sandClayObjects = GetComponent<SandClayObjects>();
+
+#if !UNITY_EDITOR
+        showDebugInfo = false;
+#endif
     }
 
     private void OnValidate() {
@@ -60,16 +70,15 @@ public class SandcastleBuildManager : MonoBehaviour
 #endif
     }
 
-    private void ShowDebugInfo(string header, Vector2Int index) 
-    {
-#if UNITY_EDITOR
-        //DEBUG
-        Debug.Log(header + ": " + index + " ==> Value = " + gridDrawer.GetHeightAtIndex(index) + " // Vertical objects list = ");
-        for (int i = gridDrawer.GetHeightAtIndex(index) -1; i >= 0; i--) {
-            Debug.Log(i + ": " + gridDrawer.GetVerticalValuesAtIndex(index)[i]);
+    private void ShowDebugInfo(string header, Vector2Int index) {
+        if (showDebugInfo) {
+            //DEBUG
+            Debug.Log(header + ": " + index + " ==> Value = " + gridDrawer.GetHeightAtIndex(index) + " // Vertical objects list = ");
+            for (int i = gridDrawer.GetHeightAtIndex(index) - 1; i >= 0; i--) {
+                Debug.Log(i + ": " + gridDrawer.GetVerticalValuesAtIndex(index)[i]);
+            }
+            Debug.Log("------------------------------------------------------------------------------------------------------------------------");
         }
-        Debug.Log("------------------------------------------------------------------------------------------------------------------------");
-#endif
     }
 
     private void OnEnable() {
@@ -79,8 +88,7 @@ public class SandcastleBuildManager : MonoBehaviour
         sandBlobManager.Initialize(currentSandBlobType);
     }
 
-    private void Update()
-    {
+    private void Update() {
         if (isInBuildMode) {
 
             //Reset blob preview and force show solids
@@ -92,7 +100,7 @@ public class SandcastleBuildManager : MonoBehaviour
 
             //Ray cast down and if it's a buildable area, spawn sand blob on mouse click
             ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            Debug.DrawRay(ray.origin, ray.direction * 50, Color.red);
+            Debug.DrawRay(ray.origin, ray.direction * 50, Color.cyan);
             if (Physics.Raycast(ray, out hit)) {
 
                 //ADD
@@ -209,9 +217,7 @@ public class SandcastleBuildManager : MonoBehaviour
                     //DEBUG
                     ShowDebugInfo("UNDO", removedObjectGridIndex);
                 }
-            } 
-
-            else if (lastOperation == OperationType.DECORATE) {
+            } else if (lastOperation == OperationType.DECORATE) {
                 decorationManager.UndoLastAddedDecoration();
             }
         }
@@ -240,18 +246,20 @@ public class SandcastleBuildManager : MonoBehaviour
                     //DEBUG
                     ShowDebugInfo("REDO", addedObjectGridIndex);
                 }
-            } 
-            
-            else if (lastOperation == OperationType.DECORATE) {
+            } else if (lastOperation == OperationType.DECORATE) {
                 decorationManager.RedoLastAction();
             }
         }
     }
 
-    public void AddObjectOnMouseClick() {
+    public void AddObjectOnMouseUp() {
+
+        previousDragDirection = Vector2.zero;
         if (canBuild) {
             AddSandBlob();
             canBuild = false;
+        } else {
+            ClearExtraPreviews();
         }
     }
 
@@ -259,7 +267,12 @@ public class SandcastleBuildManager : MonoBehaviour
 
         if (currentOperationType == OperationType.ADD) {
             sandBlobManager.CurrentSandBlobPreview.transform.Rotate(Vector3.up * 90);
-        }
+            if (extraPreviewObjects.Count > 0) {
+                foreach (GameObject extraPreview in extraPreviewObjects) {
+                    extraPreview.transform.Rotate(Vector3.up * 90);
+                }
+            }
+        } 
         else if (currentOperationType == OperationType.DECORATE) {
             decorationManager.CurrentDecoration.decorationObject.transform.Rotate(Vector3.up * scrollSpeed * Time.deltaTime);
         }
@@ -283,14 +296,71 @@ public class SandcastleBuildManager : MonoBehaviour
         currentOperationType = newOperationType;
         if (currentOperationType == OperationType.SUBTRACT) {
             sandBlobManager.CurrentTempRemoveObject = sandClayObjects.AddClayObject(sandBlobManager.CurrentSandBlob.data, spawnPosition, Quaternion.identity, currentOperationType, true).gameObject;
-        }
-        else if (currentOperationType == OperationType.ADD) {
+        } else if (currentOperationType == OperationType.ADD) {
+            if (sandBlobManager.CurrentTempRemoveObject != null)
+                Destroy(sandBlobManager.CurrentTempRemoveObject);
+        } else if (currentOperationType == OperationType.DECORATE) {
             if (sandBlobManager.CurrentTempRemoveObject != null)
                 Destroy(sandBlobManager.CurrentTempRemoveObject);
         }
-        else if (currentOperationType == OperationType.DECORATE) {
-            if (sandBlobManager.CurrentTempRemoveObject != null)
-                Destroy(sandBlobManager.CurrentTempRemoveObject);
+    }
+
+    public void OnMouseDragged(Vector3 startPosition, Vector3 currentMousePosition) {
+
+        if (currentOperationType == OperationType.ADD) {
+
+            Vector2Int startGridIndex = gridDrawer.GetTileIndexFromPosition(startPosition);
+            Vector2Int currentGridIndex = gridDrawer.GetTileIndexFromPosition(currentMousePosition);
+            Vector2 currentDragDirection = (new Vector2(currentGridIndex.x, currentGridIndex.y) - new Vector2(previousDraggedMouseIndex.x, previousDraggedMouseIndex.y)).normalized;
+
+            //If current mouse position changed index 
+            if ((int)currentSandBlobType < 100 && currentGridIndex != previousDraggedMouseIndex 
+                || (int)currentSandBlobType >= 100 && ((currentGridIndex.x - previousDraggedMouseIndex.x) == 3 || (currentGridIndex.y - previousDraggedMouseIndex.y) == 3)) {
+
+                //If preview not already created for this index, add preview
+                if (!extraPreviewObjectGridIndexes.Contains(currentGridIndex)) {
+
+                    if (!extraPreviewObjectGridIndexes.Contains(previousDraggedMouseIndex)) {
+
+                        float yPosition = gridDrawer.GetHeightAtIndex(previousDraggedMouseIndex) * gridDrawer.tileSize;
+                        Vector3 spawnPosition = new Vector3(previousDraggedMouseIndex.x, yPosition, previousDraggedMouseIndex.y);
+
+                        GameObject extraPreview = GameObject.Instantiate(sandBlobManager.CurrentSandBlobPreview, spawnPosition, sandBlobManager.CurrentSandBlobPreview.transform.rotation, extraPreviewsParent);
+                        gridDrawer.MoveObjectOnGrid(extraPreview.transform, spawnPosition);
+
+                        extraPreview.SetActive(true);
+                        extraPreviewObjects.Add(extraPreview);
+                        extraPreviewObjectGridIndexes.Add(previousDraggedMouseIndex);
+                    }
+
+                //Else remove preview
+                } else {
+                    int indexToRemove = extraPreviewObjectGridIndexes.IndexOf(previousDraggedMouseIndex);
+
+                    if (indexToRemove >= 0) {
+                        Destroy(extraPreviewObjects[indexToRemove]);
+                        extraPreviewObjects.RemoveAt(indexToRemove);
+                        extraPreviewObjectGridIndexes.RemoveAt(indexToRemove);
+                    }
+                }
+            }
+
+            if ((int)currentSandBlobType >= 100 && ((currentGridIndex.x - previousDraggedMouseIndex.x) == 3 || (currentGridIndex.y - previousDraggedMouseIndex.y) == 3) || (int)currentSandBlobType < 100)
+                previousDraggedMouseIndex = currentGridIndex;
+
+            previousDragDirection = currentDragDirection;
+        }
+    }
+
+    public void OnMouseDown(Vector3 position) {
+        previousDraggedMouseIndex = gridDrawer.GetTileIndexFromPosition(position);
+    }
+
+    private void ClearExtraPreviews() {
+        extraPreviewObjects.Clear();
+        extraPreviewObjectGridIndexes.Clear();
+        foreach (Transform extraPreviews in extraPreviewsParent) {
+            Destroy(extraPreviews.gameObject);
         }
     }
 
@@ -298,24 +368,22 @@ public class SandcastleBuildManager : MonoBehaviour
 
         //ADD
         if (currentOperationType == OperationType.ADD) {
-            //Create clay object
-            Transform clayObject = sandClayObjects.AddClayObject(sandBlobManager.CurrentSandBlob.data, spawnPosition, sandBlobManager.CurrentSandBlobPreview.transform.rotation);
+
+            GameObject clayObject = CreateBlob(sandBlobManager.CurrentSandBlobPreview.transform, true);
+
+            if (extraPreviewObjects.Count > 0) {
+
+                foreach (GameObject extraPreview in extraPreviewObjects) {
+                    if (Vector3.Distance(extraPreview.transform.position, sandBlobManager.CurrentSandBlobPreview.transform.position) > 0.5f) {
+                        CreateBlob(extraPreview.transform);
+                        allDoneOperations.Add(currentOperationType);
+                    }
+                }
+                ClearExtraPreviews();
+            }
+            allDoneOperations.Add(currentOperationType);
+            sandClayObjects.CommitClayObject(clayObject);
             sandBlobManager.CurrentSandBlobPreview.transform.rotation = Quaternion.identity;
-
-            //Spawn collider on clay object to be able to detect mouse over the blob
-            sandBlobManager.EnableSandBlobCollider(clayObject);
-
-            //Updade grid and other clay objects
-            if (isFillingHole)
-                gridDrawer.AddValueAtVerticalIndexes(shapeIndexes, (int)sandBlobManager.CurrentSandBlobPreview.transform.position.y);
-            else
-                gridDrawer.IncrementTileValueIndexes(shapeIndexes, gridDrawer.GetHeightAtIndex(gridIndexSpawn));
-            
-            if (currentSandBlobType == SandBlobType.SPHERE_3x3)
-                gridDrawer.IncrementTileValueAtIndex(gridIndexSpawn);
-
-            //DEBUG
-            ShowDebugInfo("ADD OBJECT", gridIndexSpawn);
         }
         //SUBSTRACT
         else if (currentOperationType == OperationType.SUBTRACT) {
@@ -328,6 +396,8 @@ public class SandcastleBuildManager : MonoBehaviour
             //New remove object preview
             sandBlobManager.CurrentTempRemoveObject = sandClayObjects.AddClayObject(sandBlobManager.CurrentSandBlob.data, spawnPosition, Quaternion.identity, currentOperationType, true).gameObject;
 
+            allDoneOperations.Add(currentOperationType);
+
             //DEBUG
             ShowDebugInfo("SUBSTRACT OBJECT", gridIndexSpawn);
         }
@@ -336,13 +406,40 @@ public class SandcastleBuildManager : MonoBehaviour
         else if (currentOperationType == OperationType.DECORATE) {
 
             decorationManager.CreateDecorationObject(currentDecorationType, commitCurrentObject: true);
+            allDoneOperations.Add(currentOperationType);
         }
 
-        allDoneOperations.Add(currentOperationType);
         undoneOperations.Clear();
 
         //Update solids
         sandClayObjects.UpdateSolids();
+    }
+
+    private GameObject CreateBlob(Transform preview, bool temporaryAdd = false) {
+
+        //Create clay object
+        Transform extraClayObject = sandClayObjects.AddClayObject(sandBlobManager.CurrentSandBlob.data, preview.position, preview.rotation, temporaryAdd: temporaryAdd);
+
+        //Spawn collider on clay object to be able to detect mouse over the blob
+        sandBlobManager.EnableSandBlobCollider(extraClayObject);
+
+        gridIndexSpawn = gridDrawer.GetTileIndexFromPosition(preview.position);
+        spawnPosition = sandBlobManager.GetSpawnPosition();
+        shapeIndexes = GetShapeGridIndexes(gridIndexSpawn);
+
+        //Updade grid and other clay objects
+        if (isFillingHole)
+            gridDrawer.AddValueAtVerticalIndexes(shapeIndexes, (int)preview.position.y);
+        else
+            gridDrawer.IncrementTileValueIndexes(shapeIndexes, gridDrawer.GetHeightAtIndex(gridIndexSpawn));
+
+        if (currentSandBlobType == SandBlobType.SPHERE_3x3)
+            gridDrawer.IncrementTileValueAtIndex(gridIndexSpawn);
+
+        //DEBUG
+        ShowDebugInfo("ADD OBJECT", gridIndexSpawn);
+
+        return extraClayObject.gameObject;
     }
 
     private List<Vector2Int> GetShapeGridIndexes(Vector2Int middleGridIndex, int addToAmountToAdd = 0) {

@@ -20,8 +20,10 @@ public class SandcastleManager : MonoBehaviour
         inputManager.ResetBuildZoneKeyPressed += OnResetBuildZonePressed;
         inputManager.UndoLastActionKeyPressed += OnUndoLastActionPressed;
         inputManager.RedoActionKeyPressed += OnRedoActionPressed;
-        inputManager.MouseClicked += OnMouseClicked;
+        inputManager.MouseUp += OnMouseUp;
         inputManager.MouseScrolled += OnMouseScrolled;
+        inputManager.MouseDragged += OnMouseDragged;
+        inputManager.MouseDown += OnMouseDown;
         inputManager.ToggleUIKeyPressed += OnToggleUIKeyPressed;
         inputManager.ToggleRemoveModeKeyPressed += OnToggleRemoveModeKeyPressed;
     }
@@ -37,8 +39,10 @@ public class SandcastleManager : MonoBehaviour
         inputManager.ResetBuildZoneKeyPressed -= OnResetBuildZonePressed;
         inputManager.UndoLastActionKeyPressed -= OnUndoLastActionPressed;
         inputManager.RedoActionKeyPressed -= OnRedoActionPressed;
-        inputManager.MouseClicked += OnMouseClicked;
+        inputManager.MouseUp += OnMouseUp;
         inputManager.MouseScrolled += OnMouseScrolled;
+        inputManager.MouseDragged -= OnMouseDragged;
+        inputManager.MouseDown -= OnMouseDown;
         inputManager.ToggleUIKeyPressed -= OnToggleUIKeyPressed;
         inputManager.ToggleRemoveModeKeyPressed -= OnToggleRemoveModeKeyPressed;
     }
@@ -51,8 +55,16 @@ public class SandcastleManager : MonoBehaviour
         buildManager.RotateObjectWithScroll(scrollSpeed);
     }
 
-    private void OnMouseClicked() {
-        buildManager.AddObjectOnMouseClick();
+    private void OnMouseUp() {
+        buildManager.AddObjectOnMouseUp();
+    }
+
+    private void OnMouseDragged(Vector3 startPosition, Vector3 currentMousePosition) {
+        buildManager.OnMouseDragged(startPosition, currentMousePosition);
+    }
+
+    private void OnMouseDown(Vector3 position) {
+        buildManager.OnMouseDown(position);
     }
 
     private void OnRedoActionPressed() {
