@@ -182,7 +182,7 @@ public class SandcastleBuildManager : MonoBehaviour
                 //DECORATE
                 else if (currentOperationType == OperationType.DECORATE) {
 
-                    if (decorationManager.CurrentDecoration != null && decorationManager.CurrentDecoration.decorationObject != null) {
+                    if (decorationManager.CurrentDecoration != null && decorationManager.CurrentDecoration.decorationObject != null && gridDrawer.IsInsideGridBounds(hit.point)) {
 
                         decorationManager.CurrentDecoration.decorationObject.transform.position = hit.point;
                         Quaternion newRotation = Quaternion.FromToRotation(decorationManager.CurrentDecoration.decorationObject.transform.up, hit.normal);
@@ -307,7 +307,7 @@ public class SandcastleBuildManager : MonoBehaviour
 
     public void OnMouseDragged(Vector3 startPosition, Vector3 currentMousePosition) {
 
-        if (currentOperationType == OperationType.ADD) {
+        if (currentOperationType == OperationType.ADD && gridDrawer.IsInsideGridBounds(sandBlobManager.CurrentSandBlobPreview.transform.localPosition)) {
 
             Vector2Int startGridIndex = gridDrawer.GetTileIndexFromPosition(startPosition);
             Vector2Int currentGridIndex = gridDrawer.GetTileIndexFromPosition(currentMousePosition);
