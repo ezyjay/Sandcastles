@@ -41,7 +41,9 @@ public class SandcastleBuildManager : MonoBehaviour
     private List<GameObject> extraPreviewObjects = new List<GameObject>();
     private List<Vector2Int> extraPreviewObjectGridIndexes = new List<Vector2Int>();
     private Vector2Int previousDraggedMouseIndex;
+    private Vector3 previousPreviewBlobPosition;
     private Vector2 previousDragDirection;
+    private bool hasStarted = false;
 
     [EditorButton]
     public void ResetBuildZone() {
@@ -82,14 +84,14 @@ public class SandcastleBuildManager : MonoBehaviour
     }
 
     private void OnEnable() {
-        gridDrawer.gameObject.SetActive(true);
+        //gridDrawer.gameObject.SetActive(true);
 
         sandClayObjects.Initialize();
         sandBlobManager.Initialize(currentSandBlobType);
     }
 
     private void Update() {
-        if (isInBuildMode) {
+        if (isInBuildMode && hasStarted) {
 
             //Reset blob preview and force show solids
             canBuild = false;
@@ -223,6 +225,10 @@ public class SandcastleBuildManager : MonoBehaviour
         }
     }
 
+    public void StartBuilding() {
+        hasStarted = true;
+    }
+
     public void RedoAction() {
 
         if (undoneOperations.Count > 0) {
@@ -314,7 +320,7 @@ public class SandcastleBuildManager : MonoBehaviour
             Vector2 currentDragDirection = (new Vector2(currentGridIndex.x, currentGridIndex.y) - new Vector2(previousDraggedMouseIndex.x, previousDraggedMouseIndex.y)).normalized;
 
             //If current mouse position changed index 
-            if ((int)currentSandBlobType < 100 && currentGridIndex != previousDraggedMouseIndex 
+            if ((int)currentSandBlobType < 100 && currentGridIndex != previousDraggedMouseIndex
                 || (int)currentSandBlobType >= 100 && ((currentGridIndex.x - previousDraggedMouseIndex.x) == 3 || (currentGridIndex.y - previousDraggedMouseIndex.y) == 3)) {
 
                 //If preview not already created for this index, add preview
@@ -322,7 +328,10 @@ public class SandcastleBuildManager : MonoBehaviour
 
                     if (!extraPreviewObjectGridIndexes.Contains(previousDraggedMouseIndex)) {
 
-                        float yPosition = gridDrawer.GetHeightAtIndex(previousDraggedMouseIndex) * gridDrawer.tileSize;
+                        float yPosition = gridDrawer.GetHeightAtIndex(previousDraggedMouseIndex) * gridDrawer.tileSize; 
+                        if (gridDrawer.HasObjectAtIndex(previousDraggedMouseIndex))
+                            yPosition -= .2f * gridDrawer.tileSize;
+
                         Vector3 spawnPosition = new Vector3(previousDraggedMouseIndex.x, yPosition, previousDraggedMouseIndex.y);
 
                         GameObject extraPreview = GameObject.Instantiate(sandBlobManager.CurrentSandBlobPreview, spawnPosition, sandBlobManager.CurrentSandBlobPreview.transform.rotation, extraPreviewsParent);
@@ -333,7 +342,7 @@ public class SandcastleBuildManager : MonoBehaviour
                         extraPreviewObjectGridIndexes.Add(previousDraggedMouseIndex);
                     }
 
-                //Else remove preview
+                    //Else remove preview
                 } else {
                     int indexToRemove = extraPreviewObjectGridIndexes.IndexOf(previousDraggedMouseIndex);
 
@@ -345,8 +354,10 @@ public class SandcastleBuildManager : MonoBehaviour
                 }
             }
 
-            if ((int)currentSandBlobType >= 100 && ((currentGridIndex.x - previousDraggedMouseIndex.x) == 3 || (currentGridIndex.y - previousDraggedMouseIndex.y) == 3) || (int)currentSandBlobType < 100)
+            if ((int)currentSandBlobType >= 100 && ((currentGridIndex.x - previousDraggedMouseIndex.x) == 3 || (currentGridIndex.y - previousDraggedMouseIndex.y) == 3) || (int)currentSandBlobType < 100) {
                 previousDraggedMouseIndex = currentGridIndex;
+                previousPreviewBlobPosition = sandBlobManager.CurrentSandBlobPreview.transform.position;
+            }
 
             previousDragDirection = currentDragDirection;
         }
