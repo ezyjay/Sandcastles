@@ -49,10 +49,11 @@ namespace UnityTemplateProjects
                 z = Mathf.Lerp(z, target.z, positionLerpPct);
             }
 
-            public void UpdateTransform(Transform t)
+            public void UpdateTransform(Transform t, float minY)
             {
                 t.eulerAngles = new Vector3(pitch, yaw, roll);
-                t.position = new Vector3(x, y, z);
+                float yPosition = y >= minY ? y : minY;
+                t.position = new Vector3(x, yPosition, z);
             }
         }
         
@@ -75,6 +76,8 @@ namespace UnityTemplateProjects
 
         [Tooltip("Whether or not to invert our Y axis for mouse input to rotation.")]
         public bool invertY = false;
+
+        public float minY = 3.2f;
 
         void OnEnable()
         {
@@ -175,7 +178,7 @@ namespace UnityTemplateProjects
             var rotationLerpPct = 1f - Mathf.Exp((Mathf.Log(1f - 0.99f) / rotationLerpTime) * Time.deltaTime);
             m_InterpolatingCameraState.LerpTowards(m_TargetCameraState, positionLerpPct, rotationLerpPct);
 
-            m_InterpolatingCameraState.UpdateTransform(transform);
+            m_InterpolatingCameraState.UpdateTransform(transform, minY);
         }
     }
 

@@ -21,6 +21,7 @@ public class SandcastleBuildManager : MonoBehaviour
     [ShowIf("currentOperationType", OperationType.DECORATE)]
     public SandDecorationType currentDecorationType = SandDecorationType.FLAG;
     public int maxHoleSize = 2;
+    public GameObject placementParticleEffect;
 
     [Header("Components")]
     public GridDrawer gridDrawer;
@@ -84,7 +85,7 @@ public class SandcastleBuildManager : MonoBehaviour
     }
 
     private void OnEnable() {
-        //gridDrawer.gameObject.SetActive(true);
+        gridDrawer.gameObject.SetActive(true);
 
         sandClayObjects.Initialize();
         sandBlobManager.Initialize(currentSandBlobType);
@@ -449,6 +450,14 @@ public class SandcastleBuildManager : MonoBehaviour
 
         //DEBUG
         ShowDebugInfo("ADD OBJECT", gridIndexSpawn);
+
+        //Particle effect
+        GameObject particleSystem = Instantiate(placementParticleEffect);
+        particleSystem.transform.position = preview.position + Vector3.down * .08f;
+        if ((int)currentSandBlobType >= 100)
+            particleSystem.transform.localScale = new Vector3(3, 1, 3);
+        particleSystem.SetActive(true);
+        particleSystem.GetComponent<ParticleSystem>().Play();
 
         return extraClayObject.gameObject;
     }
